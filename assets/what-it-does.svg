@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="920" height="300" viewBox="0 0 920 300"
+     font-family="-apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif">
+  <rect width="920" height="300" rx="12" fill="#0a0b0d" stroke="#1c1f24"/>
+
+  <!-- Panel 1: today -->
+  <rect x="60" y="64" width="320" height="170" rx="11" fill="#0f1115" stroke="#20242b"/>
+  <text x="220" y="100" font-size="13" fill="#717b8a" text-anchor="middle"
+        letter-spacing="1.5">TODAY — CARRIED EVERY TURN</text>
+  <text x="220" y="166" text-anchor="middle"
+        font-family="ui-monospace, Menlo, monospace">
+    <tspan font-size="58" font-weight="800" fill="#f0f6fc">143</tspan><tspan font-size="24" fill="#8b949e"> skills</tspan>
+  </text>
+  <text x="220" y="206" font-size="14" fill="#8b949e" text-anchor="middle">≈5,569 tokens of skill index</text>
+
+  <!-- arrow + label -->
+  <text x="460" y="122" font-size="16" font-weight="700" fill="#3fb950" text-anchor="middle"
+        font-family="ui-monospace, Menlo, monospace">slimcontext</text>
+  <line x1="392" y1="149" x2="524" y2="149" stroke="#3fb950" stroke-width="2"/>
+  <path d="M524 149 l-11 -6 v12 z" fill="#3fb950"/>
+  <text x="460" y="180" font-size="12" fill="#717b8a" text-anchor="middle">scores each skill</text>
+  <text x="460" y="196" font-size="12" fill="#717b8a" text-anchor="middle">against your task</text>
+
+  <!-- Panel 2: slimmed -->
+  <rect x="540" y="64" width="320" height="170" rx="11" fill="#0e1a12" stroke="#2b5234"/>
+  <text x="700" y="100" font-size="13" fill="#56d364" text-anchor="middle"
+        letter-spacing="1.5">SLIMMED — CARRIED EVERY TURN</text>
+  <text x="700" y="166" text-anchor="middle"
+        font-family="ui-monospace, Menlo, monospace">
+    <tspan font-size="58" font-weight="800" fill="#3fb950">8</tspan><tspan font-size="24" fill="#8b949e"> skills</tspan>
+  </text>
+  <text x="700" y="206" font-size="14" fill="#56d364" text-anchor="middle">≈485 tokens · 91% lighter</text>
+
+  <!-- footer -->
+  <text x="460" y="270" font-size="13" fill="#5b626d" text-anchor="middle">
+    Fully local · BM25 scoring · no API keys · reversible anytime with `slimcontext restore`
+  </text>
+</svg>

@@ -12,6 +12,7 @@ import {
   uninstallCommand,
   isCommandInstalled,
   commandPath,
+  updateCommandPath,
 } from "../src/command";
 import { readEvents } from "../src/telemetry";
 import { makeSkillsDir, isolate } from "./helpers";
@@ -65,7 +66,7 @@ test("applySkills restores a previous staging before re-applying", () => {
   assert.equal(second.score.scored.length, 4, "all 4 skills scored, not a stale subset");
 });
 
-test("runHook returns advisory context and logs telemetry", () => {
+test("runHook returns a user-visible systemMessage, model context, and logs telemetry", () => {
   const dir = makeSkillsDir(SKILLS);
   const ctx = isolate(dir);
   const { output, logged } = runHook({ prompt: "help me add oauth login", cwd: ctx.cwd });
@@ -73,8 +74,14 @@ test("runHook returns advisory context and logs telemetry", () => {
   assert.equal(logged, true);
   assert.ok(output.length > 0);
   const parsed = JSON.parse(output);
+  // model-facing
   assert.equal(parsed.hookSpecificOutput.hookEventName, "UserPromptSubmit");
   assert.ok(parsed.hookSpecificOutput.additionalContext.includes("oauth-helper"));
+  // user-facing
+  assert.equal(typeof parsed.systemMessage, "string");
+  assert.ok(parsed.systemMessage.includes("slimcontext"));
+  assert.equal(parsed.suppressOutput, true);
+  assert.equal(parsed.continue, true);
   assert.equal(readEvents().length, 1);
   assert.equal(readEvents()[0].mode, "hook");
 });
@@ -127,7 +134,13 @@ test("installCommand writes a valid /slimcontext command file", () => {
   assert.ok(body.includes("AskUserQuestion"), "instructs Claude to open a menu");
   assert.ok(body.includes("slimcontext apply"), "wires the slim action");
   assert.ok(body.includes("slimcontext enable"), "wires the enable action");
+  assert.ok(body.includes("slimcontext update"), "wires the update action");
   assert.ok(commandPath().endsWith("slimcontext.md"));
+
+  // the /update-slimcontext command is installed alongside
+  const updateBody = fs.readFileSync(updateCommandPath(), "utf8");
+  assert.ok(updateBody.includes("slimcontext update"));
+  assert.ok(updateCommandPath().endsWith("update-slimcontext.md"));
 });
 
 test("installCommand is idempotent; uninstallCommand removes the file", () => {

@@ -1,15 +1,18 @@
 /**
  * The UserPromptSubmit hook. Claude Code pipes a JSON payload on stdin; the
- * hook scores skills against the prompt, records telemetry, and returns a
- * short advisory naming the relevant skills.
+ * hook scores skills against the prompt, records telemetry, returns an
+ * advisory for the model AND a user-visible `systemMessage`.
  *
  * Design rule: the hook must NEVER break a session. Any failure exits 0 with
  * no output.
  */
 
+import * as path from "path";
+import { spawn } from "child_process";
 import { discoverSkills } from "./discover";
 import { scoreSkills } from "./score";
 import { recordScore } from "./telemetry";
+import { cacheIsStale, updateStatus } from "./update";
 
 export interface HookInput {
   prompt?: string;
@@ -50,20 +53,32 @@ export function runHook(input: HookInput): HookResult {
     return { output: "", logged: true };
   }
 
+  const upd = updateStatus();
+  const updNote = upd.updateAvailable
+    ? `  ·  update available → /update-slimcontext`
+    : "";
+
+  // user-visible one-liner
+  const systemMessage =
+    `slimcontext · ${result.activated.length}/${skills.length} skills relevant · ` +
+    `≈${result.savedPct}% of the always-on skill index could be parked${updNote}`;
+
+  // model-facing advisory
   const lines = result.activated.map(
     (s) => `- ${s.skill.name}: ${summarize(s.skill.description)}`,
   );
-  const context = [
-    `slimcontext: ${result.activated.length} of ${skills.length} installed ` +
-      `skills look relevant to this task (the rest are ≈${result.savedPct}% ` +
-      `of skill context you can skip):`,
+  const additionalContext = [
+    `slimcontext: the skills most relevant to this task are —`,
     ...lines,
   ].join("\n");
 
   const output = JSON.stringify({
+    continue: true,
+    suppressOutput: true,
+    systemMessage,
     hookSpecificOutput: {
       hookEventName: "UserPromptSubmit",
-      additionalContext: context,
+      additionalContext,
     },
   });
   return { output, logged: true };
@@ -84,6 +99,21 @@ export function readStdin(): Promise<string> {
   });
 }
 
+/** Fire-and-forget: refresh the update cache in a detached child, max once/day. */
+function maybeRefreshUpdateCache(): void {
+  if (!cacheIsStale()) return;
+  try {
+    const cli = path.join(__dirname, "cli.js");
+    const child = spawn(process.execPath, [cli, "_refresh-update"], {
+      detached: true,
+      stdio: "ignore",
+    });
+    child.unref();
+  } catch {
+    // never let an update check disrupt the session
+  }
+}
+
 /** Entry point for `slimcontext hook`. Never throws; always exits cleanly. */
 export async function hookMain(): Promise<void> {
   try {
@@ -92,6 +122,7 @@ export async function hookMain(): Promise<void> {
     const input = JSON.parse(raw) as HookInput;
     const { output } = runHook(input);
     if (output) process.stdout.write(output);
+    maybeRefreshUpdateCache();
   } catch {
     // Silent by design — a hook must never disrupt the agent session.
   }

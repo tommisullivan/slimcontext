@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="920" height="300" viewBox="0 0 920 300"
+     font-family="-apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif">
+  <rect width="920" height="300" rx="12" fill="#0a0b0d" stroke="#1c1f24"/>
+
+  <!-- Card 1 -->
+  <rect x="40" y="48" width="266" height="204" rx="11" fill="#0f1115" stroke="#1d2128"/>
+  <rect x="64" y="74" width="36" height="36" rx="9" fill="#11261a" stroke="#2b5234"/>
+  <text x="82" y="99" font-size="19" fill="#56d364" text-anchor="middle">!</text>
+  <text x="64" y="142" font-size="18" font-weight="700" fill="#f0f6fc">Context rot</text>
+  <text x="64" y="172" font-size="13.5" fill="#8b949e">Models lose 30%+ accuracy when</text>
+  <text x="64" y="192" font-size="13.5" fill="#8b949e">the window fills with text the</text>
+  <text x="64" y="212" font-size="13.5" fill="#8b949e">task doesn't need.</text>
+
+  <!-- Card 2 -->
+  <rect x="327" y="48" width="266" height="204" rx="11" fill="#0f1115" stroke="#1d2128"/>
+  <rect x="351" y="74" width="36" height="36" rx="9" fill="#11261a" stroke="#2b5234"/>
+  <text x="369" y="99" font-size="19" fill="#56d364" text-anchor="middle">!</text>
+  <text x="351" y="142" font-size="18" font-weight="700" fill="#f0f6fc">Discovery ceiling</text>
+  <text x="351" y="172" font-size="13.5" fill="#8b949e">Past ~32 skills, Claude Code</text>
+  <text x="351" y="192" font-size="13.5" fill="#8b949e">truncates skill descriptions —</text>
+  <text x="351" y="212" font-size="13.5" fill="#8b949e">it loses track of what you have.</text>
+
+  <!-- Card 3 -->
+  <rect x="614" y="48" width="266" height="204" rx="11" fill="#0f1115" stroke="#1d2128"/>
+  <rect x="638" y="74" width="36" height="36" rx="9" fill="#11261a" stroke="#2b5234"/>
+  <text x="656" y="99" font-size="19" fill="#56d364" text-anchor="middle">!</text>
+  <text x="638" y="142" font-size="18" font-weight="700" fill="#f0f6fc">It compounds</text>
+  <text x="638" y="172" font-size="13.5" fill="#8b949e">Every skill you install taxes</text>
+  <text x="638" y="192" font-size="13.5" fill="#8b949e">every future turn. slimcontext</text>
+  <text x="638" y="212" font-size="13.5" fill="#8b949e">keeps that cost flat.</text>
+</svg>

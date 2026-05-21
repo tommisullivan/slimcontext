@@ -155,11 +155,25 @@ export function scoreSkills(
 
   const activated = scored.filter((s) => s.activated);
   const suppressed = scored.filter((s) => !s.activated);
-  const tokensFull = skills.reduce((sum, s) => sum + s.tokensBody, 0);
-  const tokensSlim = activated.reduce((sum, s) => sum + s.skill.tokensBody, 0);
+
+  // The honest per-turn metric: the skill *index* (name + description) is what
+  // Claude Code keeps in context for every installed skill on every turn.
+  const tokensFull = skills.reduce((sum, s) => sum + s.tokensDescription, 0);
+  const tokensSlim = activated.reduce(
+    (sum, s) => sum + s.skill.tokensDescription,
+    0,
+  );
   const saved = tokensFull - tokensSlim;
   const savedPct =
     tokensFull > 0 ? Math.round((saved / tokensFull) * 1000) / 10 : 0;
+
+  // Secondary: the on-demand body pool — full SKILL.md text, loaded only when a
+  // skill is actually used. Parking a skill also removes it from this pool.
+  const bodyPoolFull = skills.reduce((sum, s) => sum + s.tokensBody, 0);
+  const bodyPoolSlim = activated.reduce(
+    (sum, s) => sum + s.skill.tokensBody,
+    0,
+  );
 
   return {
     query,
@@ -170,5 +184,7 @@ export function scoreSkills(
     tokensSlim,
     saved,
     savedPct,
+    bodyPoolFull,
+    bodyPoolSlim,
   };
 }

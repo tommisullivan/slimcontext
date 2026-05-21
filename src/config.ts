@@ -53,3 +53,14 @@ export function claudeCommandsDir(): string {
 }
 
 export const DEFAULT_TOP_K = 8;
+
+/** Current slimcontext version. Bump on release. */
+export const VERSION = "0.1.0";
+
+/** GitHub repo slimcontext updates from. */
+export const GITHUB_REPO = "tommisullivan/slimcontext";
+
+/** Cached result of the daily "is there a newer version?" check. */
+export function updateCacheFile(): string {
+  return path.join(slimHome(), "update-check.json");
+}

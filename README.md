@@ -18,17 +18,33 @@
 
 ---
 
-## See it work
+## What it does
 
 <p align="center">
-  <img src="assets/demo.svg" alt="slimcontext apply — 87% lighter" width="760">
+  <img src="assets/what-it-does.svg" alt="143 skills carried every turn, slimmed to the 8 a task needs" width="780">
 </p>
 
-That's a real run against a developer's actual `~/.claude/skills/` directory: **143 installed
-skills, ≈236,772 tokens** of skill context. For a "build a React form" task, slimcontext keeps
-the 12 that matter and parks the rest — **≈206,662 tokens lighter, every turn.**
+Claude Code uses **progressive disclosure** for skills: it keeps a **name + description for
+every installed skill** in context on every turn — the skill *index* — and loads a skill's full
+`SKILL.md` body only when that skill is actually used. The index is the recurring cost: with 143
+skills installed it's **≈5,569 tokens carried into every turn**, before you've typed anything.
+
+slimcontext scores those skills against your task and keeps only the ones that matter.
+
+<p align="center">
+  <img src="assets/demo.svg" alt="slimcontext apply — 91% lighter skill index" width="760">
+</p>
+
+That's a real run against a developer's actual `~/.claude/skills/` directory. For a "build a
+React form" task, slimcontext keeps the 8 relevant skills — the always-on index drops from
+**≈5,569 to ≈485 tokens, 91% lighter, every turn.** (The full skill *bodies* — ~237k tokens
+in total — load only on demand; slimming also stops irrelevant ones from ever loading.)
 
 ## Why it exists
+
+<p align="center">
+  <img src="assets/why-use-it.svg" alt="Context rot, the discovery ceiling, and compounding cost" width="780">
+</p>
 
 - **Context rot is real.** Every frontier model tested by Chroma in 2026 loses 30%+ accuracy at
   mid-window positions — well before the window is "full." Unused skill text isn't free; it
@@ -118,7 +134,10 @@ Tool Search" in January 2026. This tool is about your *skills*.
 
 - **v0.2** — optional local embedding backend (MiniLM) for semantic scoring beyond keywords.
 - **v0.2** — first-class adapters for Cline, opencode, Continue.dev, Aider.
-- **v0.3** — `slimcontext watch`: re-stage automatically as the conversation topic shifts.
+- **v0.3** — **automatic focus**: slimcontext re-stages skills on its own as your task shifts —
+  no manual `apply`.
+- **v0.4** — **slimcontext for OpenClaw**: bring skill scoring to OpenClaw's ClawHub skill
+  ecosystem.
 
 ## Contributing
 

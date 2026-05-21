@@ -23,5 +23,17 @@ export {
   uninstallCommand,
   isCommandInstalled,
   commandPath,
+  menuCommandPath,
+  updateCommandPath,
 } from "./command";
 export { loadManifest, normalizeManifest } from "./manifest";
+export {
+  isNewer,
+  readUpdateCache,
+  cacheIsStale,
+  fetchLatestVersion,
+  refreshUpdateCache,
+  updateStatus,
+  runUpdate,
+} from "./update";
+export type { UpdateCache, UpdateStatus } from "./update";

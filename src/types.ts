@@ -59,12 +59,20 @@ export interface ScoreResult {
   scored: ScoredSkill[];
   activated: ScoredSkill[];
   suppressed: ScoredSkill[];
-  /** Estimated tokens if every skill body were loaded. */
+  /**
+   * Always-on skill index (name + description) for ALL skills — what Claude
+   * Code keeps in context every turn. This is the headline saving metric.
+   */
   tokensFull: number;
-  /** Estimated tokens for activated skill bodies only. */
+  /** Always-on skill index for activated skills only. */
   tokensSlim: number;
+  /** tokensFull − tokensSlim (index tokens saved per turn). */
   saved: number;
   savedPct: number;
+  /** On-demand body pool: full SKILL.md text of ALL skills (loaded only on use). */
+  bodyPoolFull: number;
+  /** On-demand body pool for activated skills only. */
+  bodyPoolSlim: number;
 }
 
 export type TelemetryMode = "score" | "apply" | "hook";

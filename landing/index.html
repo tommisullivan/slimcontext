@@ -1,0 +1,359 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>slimcontext — load only the skills your task needs</title>
+<meta name="description" content="Your AI coding agent loads every installed skill on every turn. slimcontext keeps only the ones the task needs — fully local, free, with a token-savings dashboard." />
+<meta property="og:title" content="slimcontext" />
+<meta property="og:description" content="Load only the AI coding skills your task needs. Local, free, no API keys." />
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: #08090b; color: #b8c0cb;
+    font: 16px/1.7 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+  a { color: #56d364; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .mono { font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace; }
+  .wrap { max-width: 940px; margin: 0 auto; padding: 0 24px; }
+
+  /* nav */
+  nav { position: sticky; top: 0; z-index: 20; backdrop-filter: blur(10px);
+    background: rgba(8,9,11,.82); border-bottom: 1px solid #14171c; }
+  nav .wrap { display: flex; align-items: center; justify-content: space-between; height: 62px; }
+  .brand { font-weight: 800; color: #f4f7fa; font-size: 1.1rem; letter-spacing: -.02em;
+    font-family: ui-monospace, Menlo, monospace; }
+  .brand b { color: #3fb950; }
+  nav .links a { color: #717b8a; margin-left: 24px; font-size: .92rem; font-weight: 500; }
+  nav .links a:hover { color: #b8c0cb; text-decoration: none; }
+
+  /* hero */
+  .hero { position: relative; text-align: center; padding: 96px 0 72px; }
+  .glow { position: absolute; top: -120px; left: 50%; transform: translateX(-50%);
+    width: 760px; height: 540px; pointer-events: none;
+    background: radial-gradient(ellipse at center, rgba(63,185,80,.16), transparent 66%); }
+  .pill { position: relative; display: inline-flex; gap: 8px; align-items: center;
+    border: 1px solid #232a22; background: #0d100c; border-radius: 999px;
+    padding: 6px 15px; font-size: .8rem; color: #8b97a4; margin-bottom: 28px; }
+  .pill b { color: #56d364; font-weight: 600; }
+  h1 { position: relative; font-size: clamp(2.5rem, 6.6vw, 4.3rem); line-height: 1.05;
+    letter-spacing: -.035em; color: #f4f7fa; font-weight: 850; }
+  h1 .hl { color: #3fb950; }
+  .sub { position: relative; font-size: clamp(1.05rem, 2.3vw, 1.32rem); color: #8b97a4;
+    max-width: 600px; margin: 24px auto 36px; }
+  .cta-row { position: relative; display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  .btn { display: inline-flex; align-items: center; gap: 9px; font-weight: 650;
+    padding: 13px 24px; border-radius: 10px; font-size: 1rem; transition: .15s; }
+  .btn-primary { background: #3fb950; color: #052310; }
+  .btn-primary:hover { background: #56d364; text-decoration: none; transform: translateY(-1px); }
+  .btn-ghost { border: 1px solid #2a313a; color: #d3dae3; }
+  .btn-ghost:hover { border-color: #3fb950; color: #fff; text-decoration: none; }
+
+  /* terminal */
+  .term { position: relative; max-width: 720px; margin: 46px auto 0; text-align: left;
+    background: #0d0f13; border: 1px solid #232830; border-radius: 13px;
+    box-shadow: 0 30px 80px -30px rgba(0,0,0,.9), 0 0 0 1px rgba(63,185,80,.05);
+    overflow: hidden; }
+  .term-bar { display: flex; align-items: center; gap: 7px; padding: 12px 15px;
+    border-bottom: 1px solid #1a1e24; background: #0a0c0f; }
+  .dot { width: 11px; height: 11px; border-radius: 50%; }
+  .dot.r{background:#ec6a5e} .dot.y{background:#f4bf4f} .dot.g{background:#61c554}
+  .term-bar span { margin-left: auto; margin-right: auto; font-size: .76rem; color: #4a525e;
+    font-family: ui-monospace, Menlo, monospace; }
+  .term pre { padding: 20px 22px; overflow-x: auto; font-size: .83rem; line-height: 1.7;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+  .c-cmd{color:#f4f7fa} .c-on{color:#56d364} .c-off{color:#566069}
+  .c-arg{color:#e3b341} .c-dim{color:#8b97a4} .c-win{color:#56d364;font-weight:700}
+
+  /* works-with strip */
+  .works { border-top: 1px solid #14171c; border-bottom: 1px solid #14171c;
+    padding: 26px 0; }
+  .works .wrap { display: flex; align-items: center; justify-content: center;
+    gap: 10px 30px; flex-wrap: wrap; }
+  .works .lbl { color: #4a525e; font-size: .8rem; letter-spacing: .1em;
+    text-transform: uppercase; }
+  .works .tool { color: #8b97a4; font-weight: 600; font-size: .96rem;
+    font-family: ui-monospace, Menlo, monospace; }
+
+  /* sections */
+  section { padding: 78px 0; }
+  .eyebrow { color: #3fb950; font-size: .78rem; letter-spacing: .16em;
+    text-transform: uppercase; font-weight: 700; }
+  h2 { font-size: clamp(1.7rem, 4vw, 2.5rem); color: #f4f7fa; letter-spacing: -.025em;
+    margin: 12px 0 10px; font-weight: 820; }
+  .lead { color: #8b97a4; max-width: 620px; }
+
+  /* proof */
+  .proof { text-align: center; background:
+    radial-gradient(ellipse at 50% 0%, rgba(63,185,80,.07), transparent 60%); }
+  .proof .lead { margin: 0 auto; }
+  .stats { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; margin-top: 36px; }
+  .stat { background: #0f1115; border: 1px solid #20242b; border-radius: 13px;
+    padding: 26px 30px; min-width: 178px; }
+  .stat .big { font-size: 2.4rem; font-weight: 850; color: #f4f7fa; letter-spacing: -.03em; }
+  .stat .big.win { color: #3fb950; }
+  .stat .lbl { color: #717b8a; font-size: .84rem; margin-top: 6px; }
+
+  /* card grids */
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(252px, 1fr));
+    gap: 16px; margin-top: 32px; }
+  .card { background: #0f1115; border: 1px solid #1d2128; border-radius: 13px;
+    padding: 24px; transition: .15s; }
+  .card:hover { border-color: #2b4a32; transform: translateY(-2px); }
+  .card .ic { display: inline-flex; width: 34px; height: 34px; border-radius: 9px;
+    background: #11261a; border: 1px solid #2b5234; color: #56d364;
+    align-items: center; justify-content: center; font-weight: 700; margin-bottom: 13px; }
+  .card h3 { color: #f4f7fa; font-size: 1.06rem; margin-bottom: 6px; }
+  .card p { color: #8b97a4; font-size: .93rem; }
+
+  /* steps */
+  .step { display: flex; gap: 18px; margin-top: 26px; align-items: flex-start; }
+  .step .n { flex: none; width: 34px; height: 34px; border-radius: 9px;
+    background: #11261a; border: 1px solid #2b5234; color: #56d364; font-weight: 800;
+    display: flex; align-items: center; justify-content: center; }
+  .step h3 { color: #f4f7fa; font-size: 1.06rem; }
+  .step p { color: #8b97a4; font-size: .94rem; }
+  .step .cmd { display: inline-block; margin-top: 7px; background: #0d0f13;
+    border: 1px solid #232830; border-radius: 7px; padding: 7px 12px; font-size: .86rem;
+    color: #d3dae3; font-family: ui-monospace, Menlo, monospace; }
+
+  /* cta band */
+  .band { text-align: center; background:
+    linear-gradient(180deg, #0c130d, #08090b); border-top: 1px solid #1a2a1c; }
+  .band .install { display: inline-flex; align-items: center; gap: 10px; margin-top: 22px;
+    background: #0d0f13; border: 1px solid #2a313a; border-radius: 10px;
+    padding: 14px 20px; font-family: ui-monospace, Menlo, monospace; font-size: 1rem; }
+  .band .install .d { color: #4a525e; }
+
+  footer { border-top: 1px solid #14171c; padding: 34px 0 56px; color: #4a525e;
+    font-size: .86rem; }
+  footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+  .note { background: #0f1115; border: 1px solid #1d2128; border-left: 3px solid #3fb950;
+    border-radius: 9px; padding: 15px 18px; color: #8b97a4; font-size: .9rem; margin-top: 26px; }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <span class="brand">slim<b>context</b></span>
+    <span class="links">
+      <a href="#why">Why</a>
+      <a href="#features">Features</a>
+      <a href="#start">Quick start</a>
+      <a href="https://github.com/tommisullivan/slimcontext">GitHub</a>
+    </span>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="glow"></div>
+  <div class="wrap">
+    <span class="pill">MIT · fully local · <b>no API keys, no paid LLM calls</b></span>
+    <h1>Your agent loads <span class="hl">143 skills</span>.<br />It needs four.</h1>
+    <p class="sub">slimcontext scores your installed skills against the task in front of
+      you and keeps only the ones that matter. Less context rot, smaller bills, sharper answers.</p>
+    <div class="cta-row">
+      <a class="btn btn-primary" href="#start">npm i -g slimcontext</a>
+      <a class="btn btn-ghost" href="https://github.com/tommisullivan/slimcontext">View on GitHub →</a>
+    </div>
+
+    <div class="term">
+      <div class="term-bar">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span>slimcontext</span>
+      </div>
+<pre><span class="c-cmd">$ slimcontext apply <span class="c-arg">"build a react form with validation"</span></span>
+
+  <span class="c-on">✓ ON</span>   0.71  react-forms<span class="c-off">              (≈2,400 tok)</span>
+  <span class="c-on">✓ ON</span>   0.44  test-driven-development<span class="c-off">  (≈2,465 tok)</span>
+  <span class="c-off">  off  0.00  azure-healthcare          (≈5,338 tok)</span>
+  <span class="c-off">  off  0.00  pptx                      (≈6,384 tok)</span>
+  <span class="c-off">  off  ...   135 more skills parked</span>
+
+  <span class="c-dim">8/143 skills active · skill index ≈485 / 5,569 tok ·</span> <span class="c-win">91% lighter</span></pre>
+    </div>
+  </div>
+</header>
+
+<div class="works">
+  <div class="wrap">
+    <span class="lbl">Works with</span>
+    <span class="tool">Claude&nbsp;Code</span>
+    <span class="tool">Cursor</span>
+    <span class="tool">Cline</span>
+    <span class="tool">opencode</span>
+    <span class="tool">Continue</span>
+    <span class="tool">Aider</span>
+  </div>
+</div>
+
+<section class="proof">
+  <div class="wrap">
+    <span class="eyebrow">Measured on a real machine</span>
+    <h2>143 skills installed. One task needed 8.</h2>
+    <p class="lead">Claude Code carries a name + description for every installed skill into
+      context on <em>every turn</em> — the skill index. With 143 skills that's ≈5,569 tokens
+      before you type anything. The terminal above is a real run against a developer's actual
+      <span class="mono">~/.claude/skills/</span>.</p>
+    <div class="stats">
+      <div class="stat"><div class="big">143</div><div class="lbl">skills installed</div></div>
+      <div class="stat"><div class="big">≈5,569</div><div class="lbl">tokens of skill index, every turn</div></div>
+      <div class="stat"><div class="big win">91%</div><div class="lbl">of that index, trimmed away</div></div>
+    </div>
+  </div>
+</section>
+
+<section id="why">
+  <div class="wrap">
+    <span class="eyebrow">Why it exists</span>
+    <h2>Unused skills aren't free.</h2>
+    <p class="lead">Every skill your agent loads is text it reads past — and pays for —
+      on every turn.</p>
+    <div class="grid">
+      <div class="card">
+        <div class="ic">▲</div>
+        <h3>Context rot</h3>
+        <p>Frontier models lose 30%+ accuracy at mid-window positions long before the
+          window is "full." Noise degrades answers.</p>
+      </div>
+      <div class="card">
+        <div class="ic">▲</div>
+        <h3>The discovery ceiling</h3>
+        <p>Past ~32 installed skills, Claude Code truncates even the skill
+          <em>descriptions</em>. Native lazy-loading was closed "not planned."</p>
+      </div>
+      <div class="card">
+        <div class="ic">▲</div>
+        <h3>Libraries keep growing</h3>
+        <p>Superpowers, GSD, marketplaces — skill counts only go up. Every install
+          makes every turn heavier.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="features">
+  <div class="wrap">
+    <span class="eyebrow">What you get</span>
+    <h2>A scalpel, not a switch.</h2>
+    <div class="grid">
+      <div class="card">
+        <div class="ic">●</div><h3>Fully local</h3>
+        <p>BM25 ranking + trigger rules. Runs in milliseconds, no GPU, no model
+          download. Nothing leaves your machine.</p>
+      </div>
+      <div class="card">
+        <div class="ic">●</div><h3>Zero paid calls</h3>
+        <p>Other skill routers bill you Haiku tokens per prompt. slimcontext costs
+          nothing to run — ever.</p>
+      </div>
+      <div class="card">
+        <div class="ic">●</div><h3>Savings dashboard</h3>
+        <p><span class="mono">slimcontext stats</span> shows cumulative tokens saved.
+          No other skill tool ships this.</p>
+      </div>
+      <div class="card">
+        <div class="ic">●</div><h3>Reversible</h3>
+        <p>Skills are <em>moved</em>, never deleted. One <span class="mono">restore</span>
+          brings the whole library back.</p>
+      </div>
+      <div class="card">
+        <div class="ic">●</div><h3>In-editor menu</h3>
+        <p>Type <span class="mono">/slimcontext</span> in Claude Code — slim, restore,
+          toggle, or check savings without leaving.</p>
+      </div>
+      <div class="card">
+        <div class="ic">●</div><h3>Quality-safe mode</h3>
+        <p>The advisory hook never removes a skill — it only scores and nudges, so it
+          cannot hurt an answer.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="start">
+  <div class="wrap">
+    <span class="eyebrow">Quick start</span>
+    <h2>Lean in three commands.</h2>
+    <div class="step">
+      <div class="n">1</div>
+      <div>
+        <h3>Install</h3>
+        <p>Node 18+, no native modules.</p>
+        <span class="cmd">npm install -g slimcontext</span>
+      </div>
+    </div>
+    <div class="step">
+      <div class="n">2</div>
+      <div>
+        <h3>Stage your skills for the task ahead</h3>
+        <p>Parks irrelevant skills so the next session starts lean. Reversible anytime.</p>
+        <span class="cmd">slimcontext apply "refactor the auth module"</span>
+      </div>
+    </div>
+    <div class="step">
+      <div class="n">3</div>
+      <div>
+        <h3>Watch the wins add up</h3>
+        <p>Or run <span class="mono">slimcontext init</span> and let the hook do it.</p>
+        <span class="cmd">slimcontext stats</span>
+      </div>
+    </div>
+    <div class="note">
+      slimcontext does <b>not</b> touch MCP tool loading — Claude Code shipped native
+      "MCP Tool Search" in January 2026. This tool is about your <em>skills</em>.
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <span class="eyebrow">What's next</span>
+    <h2>The roadmap.</h2>
+    <div class="grid">
+      <div class="card">
+        <div class="ic">→</div><h3>v0.2 · Semantic scoring</h3>
+        <p>Optional local embedding backend (MiniLM) — catches relevant skills that
+          keyword matching misses.</p>
+      </div>
+      <div class="card">
+        <div class="ic">→</div><h3>v0.2 · More agents</h3>
+        <p>First-class adapters for Cline, opencode, Continue.dev and Aider.</p>
+      </div>
+      <div class="card">
+        <div class="ic">→</div><h3>v0.3 · Automatic focus</h3>
+        <p>slimcontext re-stages skills on its own as your task shifts — no manual
+          <span class="mono">apply</span>.</p>
+      </div>
+      <div class="card">
+        <div class="ic">→</div><h3>v0.4 · slimcontext for OpenClaw</h3>
+        <p>Bring skill scoring to OpenClaw's ClawHub skill ecosystem.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="band">
+  <div class="wrap">
+    <span class="eyebrow">Get started</span>
+    <h2>Stop paying for skills you're not using.</h2>
+    <div class="install"><span class="d">$</span><span>npm install -g slimcontext</span></div>
+    <p style="margin-top:18px"><a href="https://github.com/tommisullivan/slimcontext">Star it on GitHub →</a></p>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <span>slim<b style="color:#3fb950">context</b> — free &amp; open source, MIT licensed.</span>
+    <span><a href="https://github.com/tommisullivan/slimcontext">GitHub</a></span>
+  </div>
+</footer>
+
+</body>
+</html>

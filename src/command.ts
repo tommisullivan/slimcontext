@@ -1,14 +1,15 @@
-/** Installs/removes the `/slimcontext` Claude Code slash command. */
+/** Installs/removes the `/slimcontext` and `/update-slimcontext` slash commands. */
 
 import * as fs from "fs";
 import * as path from "path";
 import { claudeCommandsDir } from "./config";
 
-const COMMAND_FILE = "slimcontext.md";
+const MENU_FILE = "slimcontext.md";
+const UPDATE_FILE = "update-slimcontext.md";
 
-/** The slash-command body. Becomes the prompt when a user types /slimcontext. */
-const COMMAND_BODY = `---
-description: Open the slimcontext control menu — slim skills, toggle the hook, view savings
+/** The `/slimcontext` menu — becomes the prompt when a user types /slimcontext. */
+const MENU_BODY = `---
+description: Open the slimcontext control menu — slim skills, toggle the hook, update, view savings
 ---
 
 The user invoked the slimcontext control menu. slimcontext trims which Claude Code
@@ -22,10 +23,9 @@ skills load, to cut context tokens. Do the following:
    - "Slim skills for a task" — park skills irrelevant to a specific task. This is the
      real token cut and is fully reversible.
    - "Restore all skills" — un-park everything; the full skill library comes back.
-   - If the hook is currently OFF: "Enable advisory hook" — score + advise on every
-     prompt (never removes skills, so it cannot hurt answer quality).
-     If the hook is currently ON: "Disable advisory hook".
+   - If the hook is currently OFF: "Enable advisory hook"; if ON: "Disable advisory hook".
    - "Show savings stats" — the token-savings dashboard.
+   - "Update slimcontext" — pull the latest version from GitHub.
 
 3. Carry out the chosen action with Bash:
    - Slim skills: ask the user (plain text) what task they are about to work on, then
@@ -35,47 +35,69 @@ skills load, to cut context tokens. Do the following:
    - Enable advisory hook: run \`slimcontext enable\`.
    - Disable advisory hook: run \`slimcontext disable\`.
    - Show savings stats: run \`slimcontext stats\`.
+   - Update slimcontext: run \`slimcontext update\`.
 
 4. Report the outcome in two or three sentences.
 
-Quality note to keep in mind: "Slim skills" physically parks skill folders — if a
-parked skill turns out to be needed, restore and re-run with a higher --top value.
-The advisory hook never removes skills, so enabling it carries no quality risk.
+Quality note: "Slim skills" physically parks skill folders — if a parked skill turns out
+to be needed, restore and re-run with a higher --top value. The advisory hook never
+removes skills, so enabling it carries no quality risk.
 `;
 
+/** The `/update-slimcontext` command. */
+const UPDATE_BODY = `---
+description: Update slimcontext to the latest version from GitHub
+---
+
+The user wants to update slimcontext. Run \`slimcontext update\` with Bash. It reinstalls
+the latest version from GitHub. Then report the result in one or two sentences — the old
+version and the new version, or that it was already up to date. If it failed, show the
+error and suggest running \`npm install -g github:tommisullivan/slimcontext\` manually.
+`;
+
+export function menuCommandPath(): string {
+  return path.join(claudeCommandsDir(), MENU_FILE);
+}
+export function updateCommandPath(): string {
+  return path.join(claudeCommandsDir(), UPDATE_FILE);
+}
+
+/** Back-compat alias — the primary command path. */
 export function commandPath(): string {
-  return path.join(claudeCommandsDir(), COMMAND_FILE);
+  return menuCommandPath();
 }
 
 export function isCommandInstalled(): boolean {
-  return fs.existsSync(commandPath());
+  return fs.existsSync(menuCommandPath());
 }
 
 export interface CommandInstallResult {
-  path: string;
+  paths: string[];
   created: boolean;
 }
 
-/** Write (or refresh) the `/slimcontext` slash command. */
+/** Write (or refresh) both slash commands. */
 export function installCommand(): CommandInstallResult {
-  const file = commandPath();
-  const existed = fs.existsSync(file);
-  fs.mkdirSync(path.dirname(file), { recursive: true });
-  fs.writeFileSync(file, COMMAND_BODY, "utf8");
-  return { path: file, created: !existed };
+  const dir = claudeCommandsDir();
+  fs.mkdirSync(dir, { recursive: true });
+  const existed = fs.existsSync(menuCommandPath());
+  fs.writeFileSync(menuCommandPath(), MENU_BODY, "utf8");
+  fs.writeFileSync(updateCommandPath(), UPDATE_BODY, "utf8");
+  return { paths: [menuCommandPath(), updateCommandPath()], created: !existed };
 }
 
 export interface CommandUninstallResult {
-  path: string;
   removed: boolean;
 }
 
-/** Remove the `/slimcontext` slash command. */
+/** Remove both slash commands. */
 export function uninstallCommand(): CommandUninstallResult {
-  const file = commandPath();
-  if (fs.existsSync(file)) {
-    fs.rmSync(file);
-    return { path: file, removed: true };
+  let removed = false;
+  for (const p of [menuCommandPath(), updateCommandPath()]) {
+    if (fs.existsSync(p)) {
+      fs.rmSync(p);
+      removed = true;
+    }
   }
-  return { path: file, removed: false };
+  return { removed };
 }
