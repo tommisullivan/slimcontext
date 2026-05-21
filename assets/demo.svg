@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="396" viewBox="0 0 840 396">
+  <rect width="840" height="396" rx="12" fill="#101216" stroke="#232830"/>
+  <!-- window chrome -->
+  <circle cx="26" cy="24" r="6.5" fill="#ec6a5e"/>
+  <circle cx="48" cy="24" r="6.5" fill="#f4bf4f"/>
+  <circle cx="70" cy="24" r="6.5" fill="#61c554"/>
+  <text x="420" y="29" font-size="13" fill="#5b626d" text-anchor="middle"
+        font-family="ui-monospace, Menlo, monospace">slimcontext</text>
+  <line x1="0" y1="48" x2="840" y2="48" stroke="#1d2127"/>
+
+  <g font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="15">
+    <text x="26" y="86"  fill="#f0f6fc">$ slimcontext apply <tspan fill="#e3b341">"build a react form with validation"</tspan></text>
+
+    <text x="26" y="128" fill="#3fb950">  ✓ ON   0.71  react-forms<tspan fill="#5b626d">          (≈2,400 tok)</tspan></text>
+    <text x="26" y="152" fill="#3fb950">  ✓ ON   0.44  test-driven-development<tspan fill="#5b626d">  (≈2,465 tok)</tspan></text>
+    <text x="26" y="176" fill="#5b626d">    off  0.00  azure-healthcare         (≈5,338 tok)</text>
+    <text x="26" y="200" fill="#5b626d">    off  0.00  pptx                     (≈6,384 tok)</text>
+    <text x="26" y="224" fill="#5b626d">    off  0.00  remotion-production      (≈1,896 tok)</text>
+    <text x="26" y="248" fill="#5b626d">    off  ...    136 more skills suppressed</text>
+
+    <text x="26" y="296" fill="#8b949e">  12/143 skills active  ·  ≈30,110 / 236,772 tokens</text>
+    <text x="26" y="324" fill="#3fb950" font-weight="700">  saved ≈206,662 tokens  (87.3% lighter)</text>
+
+    <text x="26" y="364" fill="#5b626d">  Parked 131 skills → run 'slimcontext restore' to undo.</text>
+  </g>
+</svg>

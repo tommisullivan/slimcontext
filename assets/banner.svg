@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="340" viewBox="0 0 1280 340" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif">
+  <rect width="1280" height="340" fill="#0a0b0d"/>
+  <rect x="0.5" y="0.5" width="1279" height="339" fill="none" stroke="#1c1f24"/>
+
+  <!-- wordmark -->
+  <text x="72" y="150" font-size="78" font-weight="800"
+        font-family="ui-monospace, SFMono-Regular, Menlo, monospace">
+    <tspan fill="#f0f6fc">slim</tspan><tspan fill="#3fb950">context</tspan>
+  </text>
+
+  <!-- tagline -->
+  <text x="76" y="200" font-size="26" fill="#8b949e">
+    Keep only the skills your task needs. Local, free, no API keys.
+  </text>
+
+  <!-- stat chips -->
+  <g font-family="ui-monospace, SFMono-Regular, Menlo, monospace">
+    <rect x="76"  y="242" width="312" height="58" rx="11" fill="#14171c" stroke="#232830"/>
+    <text x="232" y="278" font-size="21" fill="#c4ccd6" text-anchor="middle">143 skills · ≈236k tok</text>
+
+    <rect x="404" y="242" width="92" height="58" rx="11" fill="#0a0b0d" stroke="#232830"/>
+    <text x="450" y="280" font-size="26" fill="#3fb950" text-anchor="middle">→</text>
+
+    <rect x="512" y="242" width="288" height="58" rx="11" fill="#14171c" stroke="#232830"/>
+    <text x="656" y="278" font-size="21" fill="#c4ccd6" text-anchor="middle">what one task needs</text>
+
+    <rect x="816" y="242" width="290" height="58" rx="11" fill="#0e2a16" stroke="#2b5234"/>
+    <text x="961" y="278" font-size="21" font-weight="700" fill="#3fb950" text-anchor="middle">up to 96% lighter</text>
+  </g>
+
+  <!-- corner mark -->
+  <text x="1208" y="312" font-size="15" fill="#3a3f47"
+        font-family="ui-monospace, Menlo, monospace" text-anchor="end">MIT · npm i -g slimcontext</text>
+</svg>

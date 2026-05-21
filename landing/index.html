@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>slimcontext — load the skills that matter, skip the rest</title>
+<meta name="description" content="Your AI coding agent loads every installed skill on every turn. slimcontext keeps only the ones that match the task — fully local, free, with a token-savings dashboard." />
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: #0a0b0d; color: #c4ccd6;
+    font: 16px/1.7 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 880px; margin: 0 auto; padding: 0 24px; }
+  a { color: #3fb950; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code, .mono { font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace; }
+
+  /* nav */
+  nav { border-bottom: 1px solid #1c1f24; }
+  nav .wrap { display: flex; align-items: center; justify-content: space-between; height: 60px; }
+  .brand { font-weight: 700; color: #f0f6fc; font-size: 1.05rem; }
+  .brand b { color: #3fb950; }
+  nav .links a { color: #8b949e; margin-left: 22px; font-size: .92rem; }
+
+  /* hero */
+  .hero { text-align: center; padding: 84px 0 64px; }
+  .pill {
+    display: inline-block; border: 1px solid #262b33; border-radius: 999px;
+    padding: 5px 14px; font-size: .78rem; color: #8b949e; margin-bottom: 26px;
+  }
+  .pill b { color: #3fb950; }
+  h1 {
+    font-size: clamp(2.3rem, 6vw, 3.7rem); line-height: 1.08;
+    letter-spacing: -.03em; color: #f0f6fc; font-weight: 800;
+  }
+  h1 .hl { color: #3fb950; }
+  .sub {
+    font-size: clamp(1.05rem, 2.4vw, 1.3rem); color: #8b949e;
+    max-width: 620px; margin: 22px auto 34px;
+  }
+  .cta-row { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px; font-weight: 600;
+    padding: 12px 22px; border-radius: 9px; font-size: .98rem;
+  }
+  .btn-primary { background: #3fb950; color: #06210e; }
+  .btn-primary:hover { background: #4ad65e; text-decoration: none; }
+  .btn-ghost { border: 1px solid #2b313a; color: #c4ccd6; }
+  .btn-ghost:hover { border-color: #3fb950; text-decoration: none; }
+
+  /* terminal */
+  .term {
+    background: #101216; border: 1px solid #232830; border-radius: 11px;
+    overflow: hidden; text-align: left; margin: 30px auto 0;
+  }
+  .term-bar {
+    display: flex; gap: 7px; padding: 11px 14px; border-bottom: 1px solid #1d2127;
+    background: #0d0f12;
+  }
+  .dot { width: 11px; height: 11px; border-radius: 50%; }
+  .dot.r { background: #ec6a5e; } .dot.y { background: #f4bf4f; } .dot.g { background: #61c554; }
+  .term pre {
+    padding: 18px 20px; overflow-x: auto; font-size: .82rem; line-height: 1.62;
+    white-space: pre;
+  }
+  .c-cmd { color: #f0f6fc; } .c-on { color: #3fb950; } .c-off { color: #5b626d; }
+  .c-num { color: #e3b341; } .c-dim { color: #8b949e; }
+  .c-win { color: #3fb950; font-weight: 700; }
+
+  /* generic section */
+  section { padding: 60px 0; border-top: 1px solid #15181d; }
+  .eyebrow { color: #3fb950; font-size: .8rem; letter-spacing: .14em; text-transform: uppercase; font-weight: 700; }
+  h2 { font-size: clamp(1.6rem, 4vw, 2.2rem); color: #f0f6fc; letter-spacing: -.02em; margin: 10px 0 8px; font-weight: 800; }
+  .lead { color: #8b949e; max-width: 640px; }
+
+  /* proof band */
+  .proof { text-align: center; }
+  .stat-row { display: flex; gap: 18px; justify-content: center; flex-wrap: wrap; margin-top: 30px; }
+  .stat {
+    background: #101216; border: 1px solid #232830; border-radius: 11px;
+    padding: 22px 26px; min-width: 168px;
+  }
+  .stat .big { font-size: 2rem; font-weight: 800; color: #f0f6fc; }
+  .stat .big.win { color: #3fb950; }
+  .stat .lbl { color: #8b949e; font-size: .85rem; margin-top: 4px; }
+
+  /* feature cards */
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin-top: 28px; }
+  .card {
+    background: #101216; border: 1px solid #1f242c; border-radius: 11px; padding: 22px;
+  }
+  .card h3 { color: #f0f6fc; font-size: 1.05rem; margin-bottom: 6px; }
+  .card h3 .ic { color: #3fb950; margin-right: 7px; }
+  .card p { color: #8b949e; font-size: .92rem; }
+
+  /* steps */
+  .step { display: flex; gap: 16px; margin-top: 22px; align-items: flex-start; }
+  .step .n {
+    flex: none; width: 30px; height: 30px; border-radius: 8px; background: #14241a;
+    border: 1px solid #2b5234; color: #3fb950; font-weight: 700;
+    display: flex; align-items: center; justify-content: center; font-size: .9rem;
+  }
+  .step .body h3 { color: #f0f6fc; font-size: 1rem; }
+  .step .body p { color: #8b949e; font-size: .92rem; }
+  .step code {
+    background: #14171c; border: 1px solid #232830; border-radius: 5px;
+    padding: 2px 7px; font-size: .85rem; color: #c4ccd6;
+  }
+
+  footer { border-top: 1px solid #15181d; padding: 40px 0 60px; color: #5b626d; font-size: .86rem; }
+  footer .row { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 14px; }
+  .note { background: #101216; border: 1px solid #1f242c; border-left: 3px solid #3fb950;
+    border-radius: 8px; padding: 14px 18px; color: #8b949e; font-size: .9rem; margin-top: 22px; }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <span class="brand">slim<b>context</b></span>
+    <span class="links">
+      <a href="#how">How it works</a>
+      <a href="#start">Quick start</a>
+      <a href="https://github.com/">GitHub →</a>
+    </span>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="wrap">
+    <span class="pill">MIT · fully local · zero API keys · <b>no paid LLM calls</b></span>
+    <h1>Your agent loads <span class="hl">143 skills</span><br />to fix one bug.</h1>
+    <p class="sub">slimcontext scores your installed skills against the task you're
+      actually doing — and keeps only the ones that matter. Less context rot, smaller
+      bills, sharper answers.</p>
+    <div class="cta-row">
+      <a class="btn btn-primary" href="#start">npm i -g slimcontext</a>
+      <a class="btn btn-ghost" href="#how">See how it works →</a>
+    </div>
+
+    <div class="term wrap" style="max-width:720px">
+      <div class="term-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span></div>
+<pre><span class="c-cmd">$ slimcontext score "plan a product hunt launch"</span>
+
+  <span class="c-on">✓ ON</span>   0.70  launch-playbook         (≈2,367 tok)
+  <span class="c-on">✓ ON</span>   0.38  social-content-engine   (≈1,731 tok)
+  <span class="c-on">✓ ON</span>   0.37  app-store-launch        (≈1,639 tok)
+  <span class="c-on">✓ ON</span>   0.35  remotion-production     (≈1,896 tok)
+  <span class="c-off">  off  0.09  azure-healthcare        (≈5,338 tok)</span>
+  <span class="c-off">  off  0.00  test-driven-development (≈2,465 tok)</span>
+  <span class="c-off">  off  ... 137 more skills suppressed</span>
+
+  <span class="c-dim">4/143 skills active · ≈7,633 / 236,772 tokens ·</span> <span class="c-win">saved ≈229,139 (96.8%)</span></pre>
+    </div>
+  </div>
+</header>
+
+<section class="proof">
+  <div class="wrap">
+    <span class="eyebrow">Measured on a real machine</span>
+    <h2>143 skills installed. One task needed 4.</h2>
+    <p class="lead" style="margin:0 auto">That terminal output above isn't a mock-up. It's a
+      real run against a developer's actual <code>~/.claude/skills/</code> directory.</p>
+    <div class="stat-row">
+      <div class="stat"><div class="big">143</div><div class="lbl">skills installed</div></div>
+      <div class="stat"><div class="big">≈236k</div><div class="lbl">tokens of skill context</div></div>
+      <div class="stat"><div class="big win">96.8%</div><div class="lbl">trimmed for one task</div></div>
+    </div>
+  </div>
+</section>
+
+<section id="how">
+  <div class="wrap">
+    <span class="eyebrow">Why it exists</span>
+    <h2>Unused skills aren't free.</h2>
+    <p class="lead">Every skill your agent loads is text it has to read past — and pay for —
+      on every single turn.</p>
+    <div class="grid">
+      <div class="card">
+        <h3><span class="ic">▲</span>Context rot</h3>
+        <p>Frontier models lose 30%+ accuracy at mid-window positions long before the
+          window is "full." Noise in the context actively degrades answers.</p>
+      </div>
+      <div class="card">
+        <h3><span class="ic">▲</span>The discovery ceiling</h3>
+        <p>Past ~32 installed skills, Claude Code truncates even the skill <em>descriptions</em>.
+          Native lazy-loading was requested — and closed "not planned."</p>
+      </div>
+      <div class="card">
+        <h3><span class="ic">▲</span>Libraries keep growing</h3>
+        <p>Superpowers, GSD, marketplaces — skill counts only go up. Every install makes
+          every turn heavier, unless something prunes intelligently.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <span class="eyebrow">What you get</span>
+    <h2>A scalpel, not a switch.</h2>
+    <div class="grid">
+      <div class="card">
+        <h3><span class="ic">●</span>Fully local</h3>
+        <p>BM25 ranking + trigger rules. Runs in milliseconds, no GPU, no model download.
+          Your prompts and code never leave the machine.</p>
+      </div>
+      <div class="card">
+        <h3><span class="ic">●</span>Zero paid calls</h3>
+        <p>Other skill routers bill you Haiku tokens per prompt. slimcontext costs nothing
+          to run — ever.</p>
+      </div>
+      <div class="card">
+        <h3><span class="ic">●</span>Savings dashboard</h3>
+        <p><code>slimcontext stats</code> shows cumulative tokens saved. No other skill
+          tool ships this.</p>
+      </div>
+      <div class="card">
+        <h3><span class="ic">●</span>Reversible</h3>
+        <p>Skills are <em>moved</em>, never deleted. <code>slimcontext restore</code> puts
+          the full library back, always.</p>
+      </div>
+      <div class="card">
+        <h3><span class="ic">●</span>Automatic mode</h3>
+        <p>A <code>UserPromptSubmit</code> hook scores and advises on every prompt. It can
+          never block or break a session.</p>
+      </div>
+      <div class="card">
+        <h3><span class="ic">●</span>Tunable</h3>
+        <p>Drop a <code>slimcontext.yaml</code> into any skill: keywords, globs, extensions,
+          <code>alwaysLoad</code>, dependencies.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="start">
+  <div class="wrap">
+    <span class="eyebrow">Quick start</span>
+    <h2>Lean in three commands.</h2>
+    <div class="step">
+      <div class="n">1</div>
+      <div class="body">
+        <h3>Install</h3>
+        <p><code>npm install -g slimcontext</code> — Node 18+, no native modules.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="n">2</div>
+      <div class="body">
+        <h3>Stage your skills for the task ahead</h3>
+        <p><code>slimcontext apply "refactor the auth module"</code> — parks irrelevant
+          skills so your next session starts lean. Undo anytime with <code>slimcontext restore</code>.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="n">3</div>
+      <div class="body">
+        <h3>Or let it run itself</h3>
+        <p><code>slimcontext init</code> installs the hook. Then watch the wins pile up
+          with <code>slimcontext stats</code>.</p>
+      </div>
+    </div>
+    <div class="note">
+      <b>What slimcontext does <em>not</em> do:</b> it never touches MCP tool loading —
+      Claude Code shipped native "MCP Tool Search" in January 2026. slimcontext is about
+      your <em>skills</em>, and nothing else does this for them.
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap row">
+    <span>slim<b style="color:#3fb950">context</b> — free & open source, MIT licensed.</span>
+    <span><a href="https://github.com/">GitHub</a> · <a href="https://www.npmjs.com/">npm</a></span>
+  </div>
+</footer>
+
+</body>
+</html>
