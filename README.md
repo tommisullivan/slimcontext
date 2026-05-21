@@ -37,8 +37,32 @@ slimcontext scores those skills against your task and keeps only the ones that m
 
 That's a real run against a developer's actual `~/.claude/skills/` directory. For a "build a
 React form" task, slimcontext keeps the 8 relevant skills — the always-on index drops from
-**≈5,569 to ≈485 tokens, 91% lighter, every turn.** (The full skill *bodies* — ~237k tokens
-in total — load only on demand; slimming also stops irrelevant ones from ever loading.)
+**≈5,569 to ≈485 tokens, 91% lighter, every turn.** (The full skill *bodies* — ≈684k tokens
+once the workflow files skills reference are counted — load only on demand; slimming stops
+irrelevant ones from ever loading.)
+
+## What it saves
+
+slimcontext trims the **always-on skill index** — every installed skill's name + description,
+carried into context on *every turn*:
+
+| | Tokens per turn |
+|---|---|
+| Full index — 143 skills | ≈5,569 |
+| Slimmed — the ~8 a task needs | ≈485 |
+| **Saved** | **≈5,084 — ~91% lighter** |
+
+A focused agentic session runs **~25 turns**, so that's roughly **≈127,000 tokens** of
+skill-index context kept out of the window across a session. In multi-agent workflows it
+compounds — every subagent sees the slimmed skills directory too.
+
+It also caps the **on-demand body pool**: a parked skill can't pull its referenced files —
+`gsd-execute-phase` alone is ≈50k tokens when it fires.
+
+> **Honest notes:** the ≈5,569 index figure is a lower bound (it excludes Claude Code's
+> per-skill structural framing); "~25 turns" is a typical-session estimate; and prompt caching
+> makes re-sending the index cheap, so the win is mostly context-window headroom and sharper
+> answers rather than raw API cost.
 
 ## Why it exists
 
