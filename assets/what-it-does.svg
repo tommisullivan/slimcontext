@@ -1,37 +1,43 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="920" height="300" viewBox="0 0 920 300"
+<svg xmlns="http://www.w3.org/2000/svg" width="920" height="386" viewBox="0 0 920 386"
      font-family="-apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif">
-  <rect width="920" height="300" rx="12" fill="#0a0b0d" stroke="#1c1f24"/>
+  <rect width="920" height="386" rx="12" fill="#0a0b0d" stroke="#1c1f24"/>
 
-  <!-- Panel 1: today -->
-  <rect x="60" y="64" width="320" height="170" rx="11" fill="#0f1115" stroke="#20242b"/>
-  <text x="220" y="100" font-size="13" fill="#717b8a" text-anchor="middle"
+  <!-- ── headline band — the BAM ── -->
+  <path d="M1,13 Q1,1 13,1 L907,1 Q919,1 919,13 L919,108 L1,108 Z" fill="#0e1a12"/>
+  <line x1="1" y1="108" x2="919" y2="108" stroke="#2b5234"/>
+  <text x="62" y="80" font-size="56" font-weight="850" fill="#3fb950"
+        font-family="ui-monospace, Menlo, monospace">91%</text>
+  <text x="206" y="50" font-size="21" font-weight="700" fill="#f0f6fc">lighter skill index — every turn</text>
+  <text x="206" y="82" font-size="18.5" fill="#56d364">≈127,000 tokens saved per ~25-turn agentic session</text>
+
+  <!-- ── Panel 1: today ── -->
+  <rect x="60" y="148" width="320" height="160" rx="11" fill="#0f1115" stroke="#20242b"/>
+  <text x="220" y="182" font-size="13" fill="#717b8a" text-anchor="middle"
         letter-spacing="1.5">TODAY — CARRIED EVERY TURN</text>
-  <text x="220" y="166" text-anchor="middle"
-        font-family="ui-monospace, Menlo, monospace">
-    <tspan font-size="58" font-weight="800" fill="#f0f6fc">143</tspan><tspan font-size="24" fill="#8b949e"> skills</tspan>
+  <text x="220" y="244" text-anchor="middle" font-family="ui-monospace, Menlo, monospace">
+    <tspan font-size="56" font-weight="800" fill="#f0f6fc">143</tspan><tspan font-size="23" fill="#8b949e"> skills</tspan>
   </text>
-  <text x="220" y="206" font-size="14" fill="#8b949e" text-anchor="middle">≈5,569 tokens of skill index</text>
+  <text x="220" y="283" font-size="14" fill="#8b949e" text-anchor="middle">≈5,569 tokens of skill index</text>
 
-  <!-- arrow + label -->
-  <text x="460" y="122" font-size="16" font-weight="700" fill="#3fb950" text-anchor="middle"
+  <!-- ── arrow ── -->
+  <text x="460" y="206" font-size="16" font-weight="700" fill="#3fb950" text-anchor="middle"
         font-family="ui-monospace, Menlo, monospace">slimcontext</text>
-  <line x1="392" y1="149" x2="524" y2="149" stroke="#3fb950" stroke-width="2"/>
-  <path d="M524 149 l-11 -6 v12 z" fill="#3fb950"/>
-  <text x="460" y="180" font-size="12" fill="#717b8a" text-anchor="middle">scores each skill</text>
-  <text x="460" y="196" font-size="12" fill="#717b8a" text-anchor="middle">against your task</text>
+  <line x1="392" y1="230" x2="524" y2="230" stroke="#3fb950" stroke-width="2"/>
+  <path d="M524 230 l-11 -6 v12 z" fill="#3fb950"/>
+  <text x="460" y="260" font-size="12" fill="#717b8a" text-anchor="middle">scores each skill</text>
+  <text x="460" y="276" font-size="12" fill="#717b8a" text-anchor="middle">against your task</text>
 
-  <!-- Panel 2: slimmed -->
-  <rect x="540" y="64" width="320" height="170" rx="11" fill="#0e1a12" stroke="#2b5234"/>
-  <text x="700" y="100" font-size="13" fill="#56d364" text-anchor="middle"
+  <!-- ── Panel 2: slimmed ── -->
+  <rect x="540" y="148" width="320" height="160" rx="11" fill="#0e1a12" stroke="#2b5234"/>
+  <text x="700" y="182" font-size="13" fill="#56d364" text-anchor="middle"
         letter-spacing="1.5">SLIMMED — CARRIED EVERY TURN</text>
-  <text x="700" y="166" text-anchor="middle"
-        font-family="ui-monospace, Menlo, monospace">
-    <tspan font-size="58" font-weight="800" fill="#3fb950">8</tspan><tspan font-size="24" fill="#8b949e"> skills</tspan>
+  <text x="700" y="244" text-anchor="middle" font-family="ui-monospace, Menlo, monospace">
+    <tspan font-size="56" font-weight="800" fill="#3fb950">8</tspan><tspan font-size="23" fill="#8b949e"> skills</tspan>
   </text>
-  <text x="700" y="206" font-size="14" fill="#56d364" text-anchor="middle">≈485 tokens · 91% lighter</text>
+  <text x="700" y="283" font-size="14" fill="#56d364" text-anchor="middle">≈485 tokens · 91% lighter</text>
 
-  <!-- footer -->
-  <text x="460" y="270" font-size="13" fill="#5b626d" text-anchor="middle">
+  <!-- ── footer ── -->
+  <text x="460" y="350" font-size="13" fill="#5b626d" text-anchor="middle">
     Fully local · BM25 scoring · no API keys · reversible anytime with `slimcontext restore`
   </text>
 </svg>
