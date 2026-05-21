@@ -83,7 +83,7 @@ function claudeCommandsDir() {
 }
 exports.DEFAULT_TOP_K = 8;
 /** Current slimcontext version. Bump on release. */
-exports.VERSION = "0.1.3";
+exports.VERSION = "0.1.4";
 /** GitHub repo slimcontext updates from. */
 exports.GITHUB_REPO = "tommisullivan/slimcontext";
 /** Cached result of the daily "is there a newer version?" check. */

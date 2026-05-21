@@ -55,7 +55,7 @@ export function claudeCommandsDir(): string {
 export const DEFAULT_TOP_K = 8;
 
 /** Current slimcontext version. Bump on release. */
-export const VERSION = "0.1.3";
+export const VERSION = "0.1.4";
 
 /** GitHub repo slimcontext updates from. */
 export const GITHUB_REPO = "tommisullivan/slimcontext";
