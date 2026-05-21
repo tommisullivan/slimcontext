@@ -1,9 +1,11 @@
 node_modules/
-dist/
+dist/test/
 *.log
 .DS_Store
 .slimcontext-test/
 coverage/
+
+# dist/src IS committed — it's how `npm install -g github:...` works without a build step
 
 # internal — kept local, never published to the public repo
 LAUNCH.md

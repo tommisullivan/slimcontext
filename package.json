@@ -1,6 +1,6 @@
 {
   "name": "slimcontext",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Trim your AI coding agent's skill context — keep only the skills a task needs. Local, free, with a token-savings dashboard.",
   "license": "MIT",
   "bin": {
@@ -18,8 +18,7 @@
   },
   "scripts": {
     "build": "tsc",
-    "test": "tsc -p tsconfig.test.json && node --test dist/test/",
-    "prepare": "tsc"
+    "test": "tsc -p tsconfig.test.json && node --test dist/test/"
   },
   "keywords": [
     "claude-code",
