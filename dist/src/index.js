@@ -15,11 +15,14 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
     for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.runUpdate = exports.updateStatus = exports.refreshUpdateCache = exports.fetchLatestVersion = exports.cacheIsStale = exports.readUpdateCache = exports.isNewer = exports.normalizeManifest = exports.loadManifest = exports.updateCommandPath = exports.menuCommandPath = exports.commandPath = exports.isCommandInstalled = exports.uninstallCommand = exports.installCommand = exports.isHookInstalled = exports.uninstallHook = exports.installHook = exports.runHook = exports.readState = exports.restoreSkills = exports.applySkills = exports.clearEvents = exports.recordScore = exports.logEvent = exports.readEvents = exports.summarize = exports.estimateTokens = exports.tokenize = exports.Bm25 = exports.scoreSkills = exports.parseFrontmatter = exports.discoverSkills = void 0;
+exports.runUpdate = exports.updateStatus = exports.refreshUpdateCache = exports.fetchLatestVersion = exports.cacheIsStale = exports.readUpdateCache = exports.isNewer = exports.normalizeManifest = exports.loadManifest = exports.updateCommandPath = exports.menuCommandPath = exports.commandPath = exports.isCommandInstalled = exports.uninstallCommand = exports.installCommand = exports.isHookInstalled = exports.uninstallHook = exports.installHook = exports.runHook = exports.readState = exports.restoreSkills = exports.applySkills = exports.clearEvents = exports.recordScore = exports.logEvent = exports.readEvents = exports.summarize = exports.estimateTokens = exports.tokenize = exports.Bm25 = exports.scoreSkills = exports.referencedTokens = exports.extractReferences = exports.parseFrontmatter = exports.discoverSkills = void 0;
 __exportStar(require("./types"), exports);
 var discover_1 = require("./discover");
 Object.defineProperty(exports, "discoverSkills", { enumerable: true, get: function () { return discover_1.discoverSkills; } });
 Object.defineProperty(exports, "parseFrontmatter", { enumerable: true, get: function () { return discover_1.parseFrontmatter; } });
+var references_1 = require("./references");
+Object.defineProperty(exports, "extractReferences", { enumerable: true, get: function () { return references_1.extractReferences; } });
+Object.defineProperty(exports, "referencedTokens", { enumerable: true, get: function () { return references_1.referencedTokens; } });
 var score_1 = require("./score");
 Object.defineProperty(exports, "scoreSkills", { enumerable: true, get: function () { return score_1.scoreSkills; } });
 var bm25_1 = require("./bm25");

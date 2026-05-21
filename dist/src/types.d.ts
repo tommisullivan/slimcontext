@@ -27,6 +27,8 @@ export interface Skill {
     tokensDescription: number;
     /** Estimated tokens for the full SKILL.md (the activation cost). */
     tokensBody: number;
+    /** Estimated tokens of files this skill transitively references (loaded on demand). */
+    tokensReferenced: number;
 }
 export interface ScoredSkill {
     skill: Skill;

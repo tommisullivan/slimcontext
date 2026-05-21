@@ -7,6 +7,15 @@ import { Skill, SkillSource } from "./types";
 import { projectSkillsDir, userSkillsDir } from "./config";
 import { loadManifest } from "./manifest";
 import { estimateTokens } from "./tokens";
+import { referencedTokens } from "./references";
+
+export interface DiscoverOptions {
+  /**
+   * Follow each skill's `@path` / markdown file references and count their
+   * tokens too. Adds filesystem reads — off by default so the hook stays fast.
+   */
+  resolveReferences?: boolean;
+}
 
 /** Split a markdown file into YAML frontmatter data and the body. */
 export function parseFrontmatter(content: string): {
@@ -48,7 +57,11 @@ function findSkillFile(skillDir: string): string | null {
   return match ? path.join(skillDir, match) : null;
 }
 
-function readSkillsFrom(dir: string, source: SkillSource): Skill[] {
+function readSkillsFrom(
+  dir: string,
+  source: SkillSource,
+  opts: DiscoverOptions,
+): Skill[] {
   if (!fs.existsSync(dir)) return [];
   const out: Skill[] = [];
   let entries: fs.Dirent[];
@@ -81,6 +94,9 @@ function readSkillsFrom(dir: string, source: SkillSource): Skill[] {
       manifest: loadManifest(skillDir),
       tokensDescription: estimateTokens(`${name} ${description}`),
       tokensBody: estimateTokens(content),
+      tokensReferenced: opts.resolveReferences
+        ? referencedTokens(skillDir, content)
+        : 0,
     });
   }
   return out;
@@ -90,9 +106,12 @@ function readSkillsFrom(dir: string, source: SkillSource): Skill[] {
  * Discover every skill visible to an agent running in `cwd`.
  * User skills first, then project skills; project shadows user on name clash.
  */
-export function discoverSkills(cwd: string = process.cwd()): Skill[] {
-  const user = readSkillsFrom(userSkillsDir(), "user");
-  const project = readSkillsFrom(projectSkillsDir(cwd), "project");
+export function discoverSkills(
+  cwd: string = process.cwd(),
+  opts: DiscoverOptions = {},
+): Skill[] {
+  const user = readSkillsFrom(userSkillsDir(), "user", opts);
+  const project = readSkillsFrom(projectSkillsDir(cwd), "project", opts);
   const byName = new Map<string, Skill>();
   for (const s of user) byName.set(s.name, s);
   for (const s of project) byName.set(s.name, s);

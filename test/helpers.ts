@@ -60,6 +60,7 @@ export function fakeSkill(
     manifest,
     tokensDescription: estimateTokens(`${name} ${description}`),
     tokensBody: estimateTokens(full),
+    tokensReferenced: 0,
   };
 }
 

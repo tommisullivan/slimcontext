@@ -92,7 +92,7 @@ function applySkills(cwd, query, options = {}) {
     // Start from a clean slate so we score every skill, not a stale subset.
     if (readState())
         restoreSkills();
-    const skills = (0, discover_1.discoverSkills)(cwd);
+    const skills = (0, discover_1.discoverSkills)(cwd, { resolveReferences: true });
     const score = (0, score_1.scoreSkills)(skills, query, options);
     fs.mkdirSync((0, config_1.parkedDir)(), { recursive: true });
     const parked = [];

@@ -139,8 +139,9 @@ function scoreSkills(skills, query, options = {}) {
     const savedPct = tokensFull > 0 ? Math.round((saved / tokensFull) * 1000) / 10 : 0;
     // Secondary: the on-demand body pool — full SKILL.md text, loaded only when a
     // skill is actually used. Parking a skill also removes it from this pool.
-    const bodyPoolFull = skills.reduce((sum, s) => sum + s.tokensBody, 0);
-    const bodyPoolSlim = activated.reduce((sum, s) => sum + s.skill.tokensBody, 0);
+    // body pool = SKILL.md + every file the skill transitively references
+    const bodyPoolFull = skills.reduce((sum, s) => sum + s.tokensBody + s.tokensReferenced, 0);
+    const bodyPoolSlim = activated.reduce((sum, s) => sum + s.skill.tokensBody + s.skill.tokensReferenced, 0);
     return {
         query,
         scored,

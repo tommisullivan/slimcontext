@@ -42,6 +42,7 @@ const yaml_1 = require("yaml");
 const config_1 = require("./config");
 const manifest_1 = require("./manifest");
 const tokens_1 = require("./tokens");
+const references_1 = require("./references");
 /** Split a markdown file into YAML frontmatter data and the body. */
 function parseFrontmatter(content) {
     if (content.startsWith("---")) {
@@ -76,7 +77,7 @@ function findSkillFile(skillDir) {
     const match = entries.find((e) => e.toLowerCase() === "skill.md");
     return match ? path.join(skillDir, match) : null;
 }
-function readSkillsFrom(dir, source) {
+function readSkillsFrom(dir, source, opts) {
     if (!fs.existsSync(dir))
         return [];
     const out = [];
@@ -114,6 +115,9 @@ function readSkillsFrom(dir, source) {
             manifest: (0, manifest_1.loadManifest)(skillDir),
             tokensDescription: (0, tokens_1.estimateTokens)(`${name} ${description}`),
             tokensBody: (0, tokens_1.estimateTokens)(content),
+            tokensReferenced: opts.resolveReferences
+                ? (0, references_1.referencedTokens)(skillDir, content)
+                : 0,
         });
     }
     return out;
@@ -122,9 +126,9 @@ function readSkillsFrom(dir, source) {
  * Discover every skill visible to an agent running in `cwd`.
  * User skills first, then project skills; project shadows user on name clash.
  */
-function discoverSkills(cwd = process.cwd()) {
-    const user = readSkillsFrom((0, config_1.userSkillsDir)(), "user");
-    const project = readSkillsFrom((0, config_1.projectSkillsDir)(cwd), "project");
+function discoverSkills(cwd = process.cwd(), opts = {}) {
+    const user = readSkillsFrom((0, config_1.userSkillsDir)(), "user", opts);
+    const project = readSkillsFrom((0, config_1.projectSkillsDir)(cwd), "project", opts);
     const byName = new Map();
     for (const s of user)
         byName.set(s.name, s);

@@ -54,17 +54,19 @@ function printScore(result: ScoreResult, showAll = false): void {
     console.log(`  ${dim("No skills discovered. Is ~/.claude/skills/ populated?")}\n`);
     return;
   }
+  const cost = (sk: ScoredSkill["skill"]): number =>
+    sk.tokensBody + sk.tokensReferenced;
   for (const s of result.activated) {
     console.log(
       "  " +
         green(`✓ ON  ${s.score.toFixed(2)}  ${s.skill.name}`) +
-        dim(`  (≈${num(s.skill.tokensBody)} tok)`),
+        dim(`  (≈${num(cost(s.skill))} tok)`),
     );
   }
   const shown = showAll ? result.suppressed : result.suppressed.slice(0, 3);
   for (const s of shown) {
     console.log(
-      dim(`    off  ${s.score.toFixed(2)}  ${s.skill.name}  (≈${num(s.skill.tokensBody)} tok)`),
+      dim(`    off  ${s.score.toFixed(2)}  ${s.skill.name}  (≈${num(cost(s.skill))} tok)`),
     );
   }
   const hidden = result.suppressed.length - shown.length;
@@ -93,7 +95,7 @@ program
   .command("list")
   .description("List discovered skills and their token cost")
   .action(() => {
-    const skills = discoverSkills();
+    const skills = discoverSkills(process.cwd(), { resolveReferences: true });
     if (skills.length === 0) {
       console.log("\n  No skills found in ~/.claude/skills/.\n");
       return;
@@ -101,17 +103,21 @@ program
     let index = 0;
     let body = 0;
     console.log(`\n  ${skills.length} skill(s) discovered:\n`);
-    for (const s of skills.sort((a, b) => b.tokensBody - a.tokensBody)) {
+    for (const s of skills.sort(
+      (a, b) => b.tokensBody + b.tokensReferenced - a.tokensBody - a.tokensReferenced,
+    )) {
       index += s.tokensDescription;
-      body += s.tokensBody;
+      const full = s.tokensBody + s.tokensReferenced;
+      body += full;
+      const refNote = s.tokensReferenced > 0 ? dim(` +${num(s.tokensReferenced)} refs`) : "";
       console.log(
         `  ${s.source === "user" ? "user   " : "project"}  ` +
-          `≈${num(s.tokensBody).padStart(7)} tok  ${s.name}`,
+          `≈${num(full).padStart(7)} tok  ${s.name}${refNote}`,
       );
     }
     console.log(
       dim(`\n  always-on skill index: ≈${num(index)} tok per turn  ·  ` +
-        `on-demand body pool: ≈${num(body)} tok\n`),
+        `on-demand body pool (SKILL.md + referenced files): ≈${num(body)} tok\n`),
     );
     updateFooter();
   });
@@ -125,7 +131,8 @@ program
   .option("-a, --all", "show every skill, not just the top few")
   .option("--json", "output JSON")
   .action((taskParts: string[], opts: { top: string; min: string; all?: boolean; json?: boolean }) => {
-    const result = scoreSkills(discoverSkills(), taskParts.join(" "), {
+    const skills = discoverSkills(process.cwd(), { resolveReferences: true });
+    const result = scoreSkills(skills, taskParts.join(" "), {
       topK: parsePositiveInt(opts.top, DEFAULT_TOP_K),
       minScore: Number.parseFloat(opts.min) || 0,
     });

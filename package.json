@@ -1,6 +1,6 @@
 {
   "name": "slimcontext",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Trim your AI coding agent's skill context — keep only the skills a task needs. Local, free, with a token-savings dashboard.",
   "license": "MIT",
   "bin": {

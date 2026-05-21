@@ -2,6 +2,8 @@
 
 export * from "./types";
 export { discoverSkills, parseFrontmatter } from "./discover";
+export type { DiscoverOptions } from "./discover";
+export { extractReferences, referencedTokens } from "./references";
 export { scoreSkills } from "./score";
 export { Bm25, tokenize } from "./bm25";
 export { estimateTokens } from "./tokens";

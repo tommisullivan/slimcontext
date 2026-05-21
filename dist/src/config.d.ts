@@ -17,7 +17,7 @@ export declare function claudeSettingsFile(): string;
 export declare function claudeCommandsDir(): string;
 export declare const DEFAULT_TOP_K = 8;
 /** Current slimcontext version. Bump on release. */
-export declare const VERSION = "0.1.4";
+export declare const VERSION = "0.1.5";
 /** GitHub repo slimcontext updates from. */
 export declare const GITHUB_REPO = "tommisullivan/slimcontext";
 /** Cached result of the daily "is there a newer version?" check. */

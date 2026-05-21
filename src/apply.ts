@@ -67,7 +67,7 @@ export function applySkills(
   // Start from a clean slate so we score every skill, not a stale subset.
   if (readState()) restoreSkills();
 
-  const skills = discoverSkills(cwd);
+  const skills = discoverSkills(cwd, { resolveReferences: true });
   const score = scoreSkills(skills, query, options);
 
   fs.mkdirSync(parkedDir(), { recursive: true });
