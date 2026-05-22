@@ -156,12 +156,15 @@ Tool Search" in January 2026. This tool is about your *skills*.
 
 ## Roadmap
 
-- **v0.2** — optional local embedding backend (MiniLM) for semantic scoring beyond keywords.
-- **v0.2** — first-class adapters for Cline, opencode, Continue.dev, Aider.
-- **v0.3** — **automatic focus**: slimcontext re-stages skills on its own as your task shifts —
-  no manual `apply`.
-- **v0.4** — **slimcontext for OpenClaw**: bring skill scoring to OpenClaw's ClawHub skill
-  ecosystem.
+- [ ] **v0.2** — optional local embedding backend (MiniLM) for semantic scoring beyond keywords.
+- [ ] **v0.2** — first-class adapters for Cline, opencode, Continue.dev, Aider.
+- [ ] **v0.3** — **automatic focus**: slimcontext re-stages skills on its own as your task shifts — no manual `apply`.
+- [ ] **v0.4** — **slimcontext for OpenClaw**: bring skill scoring to OpenClaw's ClawHub skill ecosystem.
+
+_Shipped:_
+
+- [x] **v0.1.5** — follow skill file-references for an honest on-demand body-pool figure.
+- [x] **v0.1** — BM25 scoring, `/slimcontext` menu, advisory hook, token-savings dashboard, self-update.
 
 ## Contributing
 
