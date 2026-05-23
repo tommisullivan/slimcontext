@@ -124,6 +124,7 @@ export function scoreSkills(
       skill,
       score,
       bm25: bm,
+      rawBm25: rawBm25[i],
       triggerBoost: boost,
       alwaysLoad,
       reasons: allReasons,

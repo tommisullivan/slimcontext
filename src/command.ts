@@ -23,7 +23,9 @@ skills load, to cut context tokens. Do the following:
    - "Slim skills for a task" — park skills irrelevant to a specific task. This is the
      real token cut and is fully reversible.
    - "Restore all skills" — un-park everything; the full skill library comes back.
-   - If the hook is currently OFF: "Enable advisory hook"; if ON: "Disable advisory hook".
+   - If the hook is currently OFF: "Enable advisory hook" — silently injects routing
+     context for the model on every prompt (no chat-visible message). If ON:
+     "Disable advisory hook" — turn it off entirely.
    - "Show savings stats" — the token-savings dashboard.
    - "Update slimcontext" — pull the latest version from GitHub.
 
@@ -42,6 +44,10 @@ skills load, to cut context tokens. Do the following:
 Quality note: "Slim skills" physically parks skill folders — if a parked skill turns out
 to be needed, restore and re-run with a higher --top value. The advisory hook never
 removes skills, so enabling it carries no quality risk.
+
+Want the chat-visible "slimcontext · N skills relevant" diagnostic line back? It's opt-in
+via the environment variable \`SLIMCONTEXT_VERBOSE=1\`. Without it the hook is silent
+to the user (the model still gets the routing context).
 `;
 
 /** The `/update-slimcontext` command. */

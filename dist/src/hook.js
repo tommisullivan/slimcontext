@@ -59,6 +59,27 @@ function summarize(description) {
     const sentence = dot > 0 ? text.slice(0, dot + 1) : text;
     return sentence.length > 140 ? `${sentence.slice(0, 137)}...` : sentence;
 }
+/**
+ * Threshold for *which* skills count as "looking relevant" if the user has
+ * opted into the verbose chat line. We still apply it (so the count is
+ * meaningful when it does appear), even though by default we don't print.
+ */
+const MIN_SCORE = 0.35;
+/**
+ * The chat-visible one-liner ("slimcontext · N of M skills look relevant") is
+ * opt-in. With 143 verbose skills and common dev vocabulary, lexical scores
+ * cluster too tightly for the count to discriminate vague vs specific prompts
+ * — so printing it on every chat just adds noise. The model still gets the
+ * routing advisory (additionalContext) on every prompt; that's where the
+ * actual value lives.
+ *
+ * Users who want the line back can set `SLIMCONTEXT_VERBOSE=1` in their
+ * environment or via the Claude Code hook command.
+ */
+function verboseEnabled() {
+    const v = process.env.SLIMCONTEXT_VERBOSE;
+    return v === "1" || v === "true";
+}
 /** Core hook logic. Pure apart from telemetry logging — easy to test. */
 function runHook(input) {
     const prompt = (input.prompt ?? "").trim();
@@ -68,34 +89,36 @@ function runHook(input) {
     const skills = (0, discover_1.discoverSkills)(cwd);
     if (skills.length === 0)
         return { output: "", logged: false };
-    const result = (0, score_1.scoreSkills)(skills, prompt);
+    const result = (0, score_1.scoreSkills)(skills, prompt, { minScore: MIN_SCORE });
     (0, telemetry_1.recordScore)(result, "hook", "claude-code");
     if (result.activated.length === 0) {
         return { output: "", logged: true };
     }
-    const upd = (0, update_1.updateStatus)();
-    const updNote = upd.updateAvailable
-        ? `  ·  update available → /update-slimcontext`
-        : "";
-    // user-visible one-liner
-    const systemMessage = `slimcontext · ${result.activated.length}/${skills.length} skills relevant · ` +
-        `≈${result.savedPct}% of the always-on skill index could be parked${updNote}`;
-    // model-facing advisory
+    // model-facing advisory — always sent; this is the actual routing value.
     const lines = result.activated.map((s) => `- ${s.skill.name}: ${summarize(s.skill.description)}`);
     const additionalContext = [
         `slimcontext: the skills most relevant to this task are —`,
         ...lines,
     ].join("\n");
-    const output = JSON.stringify({
+    const payload = {
         continue: true,
         suppressOutput: true,
-        systemMessage,
         hookSpecificOutput: {
             hookEventName: "UserPromptSubmit",
             additionalContext,
         },
-    });
-    return { output, logged: true };
+    };
+    // user-visible one-liner is opt-in via SLIMCONTEXT_VERBOSE.
+    if (verboseEnabled()) {
+        const upd = (0, update_1.updateStatus)();
+        const updNote = upd.updateAvailable
+            ? `  ·  update available → /update-slimcontext`
+            : "";
+        payload.systemMessage =
+            `slimcontext · ${result.activated.length} of ${skills.length} skills look relevant · ` +
+                `≈${result.savedPct}% of the always-on skill index could be parked${updNote}`;
+    }
+    return { output: JSON.stringify(payload), logged: true };
 }
 /** Read all of stdin (used by the CLI `hook` subcommand). */
 function readStdin() {

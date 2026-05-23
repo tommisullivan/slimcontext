@@ -66,24 +66,38 @@ test("applySkills restores a previous staging before re-applying", () => {
   assert.equal(second.score.scored.length, 4, "all 4 skills scored, not a stale subset");
 });
 
-test("runHook returns a user-visible systemMessage, model context, and logs telemetry", () => {
+test("runHook injects model routing context but stays user-silent by default", () => {
   const dir = makeSkillsDir(SKILLS);
   const ctx = isolate(dir);
+  delete process.env.SLIMCONTEXT_VERBOSE;
   const { output, logged } = runHook({ prompt: "help me add oauth login", cwd: ctx.cwd });
 
   assert.equal(logged, true);
   assert.ok(output.length > 0);
   const parsed = JSON.parse(output);
-  // model-facing
+  // model-facing routing is always present
   assert.equal(parsed.hookSpecificOutput.hookEventName, "UserPromptSubmit");
   assert.ok(parsed.hookSpecificOutput.additionalContext.includes("oauth-helper"));
-  // user-facing
-  assert.equal(typeof parsed.systemMessage, "string");
-  assert.ok(parsed.systemMessage.includes("slimcontext"));
+  // default: no user-visible chat line
+  assert.equal(parsed.systemMessage, undefined, "no systemMessage by default");
   assert.equal(parsed.suppressOutput, true);
   assert.equal(parsed.continue, true);
   assert.equal(readEvents().length, 1);
   assert.equal(readEvents()[0].mode, "hook");
+});
+
+test("runHook prints the verbose chat line when SLIMCONTEXT_VERBOSE=1", () => {
+  const dir = makeSkillsDir(SKILLS);
+  const ctx = isolate(dir);
+  process.env.SLIMCONTEXT_VERBOSE = "1";
+  try {
+    const r = runHook({ prompt: "help me add oauth login", cwd: ctx.cwd });
+    const parsed = JSON.parse(r.output);
+    assert.equal(typeof parsed.systemMessage, "string");
+    assert.ok(parsed.systemMessage.includes("slimcontext"));
+  } finally {
+    delete process.env.SLIMCONTEXT_VERBOSE;
+  }
 });
 
 test("runHook on an empty prompt does nothing", () => {

@@ -82,7 +82,19 @@ It also caps the **on-demand body pool**: a parked skill can't pull its referenc
 ## Install
 
 ```bash
-npm install -g slimcontext
+# install from GitHub (the npm name `slimcontext` is taken by an unrelated package)
+npm install -g github:tommisullivan/slimcontext
+
+# one-time: register the /slimcontext menu + the advisory hook in Claude Code
+slimcontext init
+```
+
+Restart Claude Code once, then type `/slimcontext`.
+
+Prefer not to install globally? Try it once with `npx`:
+
+```bash
+npx github:tommisullivan/slimcontext list
 ```
 
 Node 18+. No native modules, no model downloads, no API keys.
@@ -91,8 +103,9 @@ Node 18+. No native modules, no model downloads, no API keys.
 
 ### From inside Claude Code — `/slimcontext`
 
-Run `slimcontext init` once, restart Claude Code, then type **`/slimcontext`** — an in-editor
-menu to slim skills for the current task, restore everything, toggle the hook, or view savings.
+After `slimcontext init` and a Claude Code restart, type **`/slimcontext`** — an
+in-editor menu to slim skills for the current task, restore everything, toggle the
+hook, or view savings.
 
 ### From the terminal
 
@@ -115,7 +128,10 @@ no GPU, and **nothing ever leaves your machine**.
 - `score` — dry run; shows the ranking, changes nothing.
 - `apply` — moves low-scoring **user** skills into `~/.slimcontext/parked/`. Project skills
   (a repo's `.claude/skills/`) are never touched. Fully reversible with `restore`.
-- the hook — measures and advises on every prompt; logs telemetry to a greppable JSONL ledger.
+- the hook — silently injects routing context for the model on every prompt and logs
+  telemetry to a greppable JSONL ledger. Set `SLIMCONTEXT_VERBOSE=1` to also see a
+  per-prompt chat line ("slimcontext · N of M skills relevant"); it's off by default
+  because it adds noise on every chat.
 
 ### Optional: per-skill manifest
 
@@ -163,6 +179,7 @@ Tool Search" in January 2026. This tool is about your *skills*.
 
 _Shipped:_
 
+- [x] **v0.1.7** — the chat-visible hook line is now opt-in (`SLIMCONTEXT_VERBOSE=1`); by default the hook injects routing context for the model silently, so it doesn't print "N of 143 skills relevant" under every chat. Install fixed too — the npm name `slimcontext` is taken by another project, so install from GitHub: `npm install -g github:tommisullivan/slimcontext`.
 - [x] **v0.1.6** — smarter BM25: stemming, compound-word splitting (camelCase / kebab / snake), and a built-in tech-synonym table (auth↔login, k8s↔kubernetes, migration↔migrate…). A real first step toward the embedding backend.
 - [x] **v0.1.5** — follow skill file-references for an honest on-demand body-pool figure.
 - [x] **v0.1** — BM25 scoring, `/slimcontext` menu, advisory hook, token-savings dashboard, self-update.

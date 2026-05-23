@@ -41,6 +41,11 @@ export interface ScoredSkill {
   score: number;
   /** Normalized BM25 component, 0..1. */
   bm25: number;
+  /**
+   * Raw (un-normalised) BM25 score — needed to tell a "real" match from a
+   * winner-by-default when no skill has meaningful overlap with the query.
+   */
+  rawBm25: number;
   /** Manifest trigger boost, 0..1. */
   triggerBoost: number;
   alwaysLoad: boolean;
