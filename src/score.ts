@@ -1,6 +1,6 @@
 /** The scoring engine: ranks skills against a task and picks a subset. */
 
-import { Bm25, Bm25Doc, tokenize } from "./bm25";
+import { Bm25, Bm25Doc, expandQuery, tokenize } from "./bm25";
 import { DEFAULT_TOP_K } from "./config";
 import {
   Skill,
@@ -98,7 +98,7 @@ export function scoreSkills(
   const topK = options.topK ?? DEFAULT_TOP_K;
   const minScore = options.minScore ?? 0;
   const queryLower = query.toLowerCase();
-  const queryTokens = tokenize(query);
+  const queryTokens = expandQuery(tokenize(query));
 
   const docs: Bm25Doc[] = skills.map((s) => ({
     id: s.name,

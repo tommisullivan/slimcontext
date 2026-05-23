@@ -1,6 +1,13 @@
 /** A small, dependency-free BM25 ranking function. */
-/** Lowercase, split on non-alphanumerics, drop stopwords and 1-char tokens. */
+/**
+ * Tokenise text for BM25.
+ * Splits compound identifiers (camelCase/kebab/snake), drops stopwords + 1-char
+ * tokens, and emits both the surface form and a light stem so plural/tense
+ * variants ("migration"/"migrate", "validation"/"validate") collide.
+ */
 export declare function tokenize(text: string): string[];
+/** Expand a query token list with built-in synonyms. */
+export declare function expandQuery(queryTokens: string[]): string[];
 export interface Bm25Doc {
     id: string;
     tokens: string[];

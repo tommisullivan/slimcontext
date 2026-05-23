@@ -76,7 +76,7 @@ function scoreSkills(skills, query, options = {}) {
     const topK = options.topK ?? config_1.DEFAULT_TOP_K;
     const minScore = options.minScore ?? 0;
     const queryLower = query.toLowerCase();
-    const queryTokens = (0, bm25_1.tokenize)(query);
+    const queryTokens = (0, bm25_1.expandQuery)((0, bm25_1.tokenize)(query));
     const docs = skills.map((s) => ({
         id: s.name,
         tokens: (0, bm25_1.tokenize)(`${s.name} ${s.description} ${s.body}`),

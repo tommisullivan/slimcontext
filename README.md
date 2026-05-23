@@ -163,6 +163,7 @@ Tool Search" in January 2026. This tool is about your *skills*.
 
 _Shipped:_
 
+- [x] **v0.1.6** — smarter BM25: stemming, compound-word splitting (camelCase / kebab / snake), and a built-in tech-synonym table (auth↔login, k8s↔kubernetes, migration↔migrate…). A real first step toward the embedding backend.
 - [x] **v0.1.5** — follow skill file-references for an honest on-demand body-pool figure.
 - [x] **v0.1** — BM25 scoring, `/slimcontext` menu, advisory hook, token-savings dashboard, self-update.
 
