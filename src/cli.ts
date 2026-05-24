@@ -5,14 +5,20 @@ import { Command } from "commander";
 import { discoverSkills } from "./discover";
 import { scoreSkills } from "./score";
 import { applySkills, restoreSkills, readState } from "./apply";
+import {
+  applyMcp,
+  restoreMcp,
+  discoverMcpServers,
+  parkedMcpCount,
+} from "./mcp";
 import { summarize } from "./stats";
 import { clearEvents, eventsLocation } from "./telemetry";
 import { installHook, uninstallHook, isHookInstalled } from "./install";
 import { installCommand, uninstallCommand, isCommandInstalled } from "./command";
 import { hookMain } from "./hook";
 import { runUpdate, updateStatus, refreshUpdateCache } from "./update";
-import { ScoredSkill, ScoreResult } from "./types";
-import { DEFAULT_TOP_K, VERSION } from "./config";
+import { McpScoreResult, ScoredSkill, ScoreResult } from "./types";
+import { claudeMcpFile, DEFAULT_TOP_K, VERSION } from "./config";
 
 /* ── colour ──────────────────────────────────────────────────────────── */
 const COLOR = process.stdout.isTTY === true && !process.env.NO_COLOR;
@@ -85,10 +91,43 @@ function printScore(result: ScoreResult, showAll = false): void {
   console.log("");
 }
 
+function printMcp(result: McpScoreResult, parked: string[], fileMissing: boolean): void {
+  if (fileMissing) {
+    console.log(dim(`  MCP servers:           none configured (${claudeMcpFile()} not found)\n`));
+    return;
+  }
+  if (result.scored.length === 0) {
+    console.log(dim("  MCP servers:           none configured — nothing to slim.\n"));
+    return;
+  }
+  console.log(`  ${dim("MCP servers")}`);
+  for (const s of result.activated) {
+    console.log(
+      "  " +
+        green(`✓ ON  ${s.score.toFixed(2)}  ${s.server.name}`) +
+        dim(`  (≈${num(s.server.tokensEstimate)} tok est.)`),
+    );
+  }
+  for (const s of result.suppressed) {
+    console.log(
+      dim(`    off  ${s.score.toFixed(2)}  ${s.server.name}  (≈${num(s.server.tokensEstimate)} tok est.)`),
+    );
+  }
+  console.log(
+    "  " +
+      bgreen(`MCP saved ≈${num(result.saved)} tokens/turn (approx)  ·  ${parked.length} server(s) parked`),
+  );
+  if (parked.length > 0) {
+    console.log(yellow("  ⟳ restart Claude Code to apply MCP changes\n"));
+  } else {
+    console.log("");
+  }
+}
+
 const program = new Command();
 program
   .name("slimcontext")
-  .description("Trim your AI coding agent's skill context — keep only the skills a task needs.")
+  .description("Trim your AI coding agent's skill + MCP context — keep only what a task needs.")
   .version(VERSION);
 
 program
@@ -127,7 +166,7 @@ program
   .argument("<task...>", "the task you are about to work on")
   .description("Score skills against a task (read-only, no changes)")
   .option("-k, --top <n>", "max skills to activate", String(DEFAULT_TOP_K))
-  .option("--min <score>", "minimum score to activate (0..1)", "0")
+  .option("--min <score>", "minimum score to activate (0..1)", "0.1")
   .option("-a, --all", "show every skill, not just the top few")
   .option("--json", "output JSON")
   .action((taskParts: string[], opts: { top: string; min: string; all?: boolean; json?: boolean }) => {
@@ -149,29 +188,69 @@ program
 program
   .command("apply")
   .argument("<task...>", "the task you are about to work on")
-  .description("Park irrelevant skills so a session starts lean (reversible)")
+  .description("Park irrelevant skills + MCP servers so a session starts lean (reversible)")
   .option("-k, --top <n>", "max skills to keep active", String(DEFAULT_TOP_K))
-  .option("--min <score>", "minimum score to keep active (0..1)", "0")
-  .action((taskParts: string[], opts: { top: string; min: string }) => {
-    const { score, parked } = applySkills(process.cwd(), taskParts.join(" "), {
-      topK: parsePositiveInt(opts.top, DEFAULT_TOP_K),
-      minScore: Number.parseFloat(opts.min) || 0,
-    });
-    printScore(score);
-    console.log(`  Parked ${parked.length} skill(s) → run 'slimcontext restore' to undo.\n`);
-    updateFooter();
-  });
+  .option("--mcp-top <n>", "max MCP servers to keep active", String(DEFAULT_TOP_K))
+  .option("--min <score>", "minimum score to keep active (0..1)", "0.1")
+  .option("--skills-only", "only slim skills, leave MCP servers alone")
+  .option("--mcp-only", "only slim MCP servers, leave skills alone")
+  .action(
+    (
+      taskParts: string[],
+      opts: {
+        top: string;
+        mcpTop: string;
+        min: string;
+        skillsOnly?: boolean;
+        mcpOnly?: boolean;
+      },
+    ) => {
+      const query = taskParts.join(" ");
+      const minScore = Number.parseFloat(opts.min) || 0;
+
+      if (!opts.mcpOnly) {
+        const { score, parked } = applySkills(process.cwd(), query, {
+          topK: parsePositiveInt(opts.top, DEFAULT_TOP_K),
+          minScore,
+        });
+        printScore(score);
+        console.log(`  Parked ${parked.length} skill(s) → run 'slimcontext restore' to undo.\n`);
+      }
+
+      if (!opts.skillsOnly) {
+        const mcp = applyMcp(query, {
+          topK: parsePositiveInt(opts.mcpTop, DEFAULT_TOP_K),
+          minScore,
+        });
+        printMcp(mcp.score, mcp.parked, mcp.fileMissing);
+      }
+
+      updateFooter();
+    },
+  );
 
 program
   .command("restore")
-  .description("Move every parked skill back into place")
-  .action(() => {
-    const { restored } = restoreSkills();
-    console.log(
-      restored.length > 0
-        ? `\n  Restored ${restored.length} skill(s).\n`
-        : "\n  Nothing parked — nothing to restore.\n",
-    );
+  .description("Move every parked skill + MCP server back into place")
+  .option("--skills-only", "only restore skills, leave parked MCP servers alone")
+  .option("--mcp-only", "only restore MCP servers, leave parked skills alone")
+  .action((opts: { skillsOnly?: boolean; mcpOnly?: boolean }) => {
+    let skillCount = 0;
+    let mcpCount = 0;
+    if (!opts.mcpOnly) skillCount = restoreSkills().restored.length;
+    if (!opts.skillsOnly) mcpCount = restoreMcp().restored.length;
+
+    if (skillCount === 0 && mcpCount === 0) {
+      console.log("\n  Nothing parked — nothing to restore.\n");
+      return;
+    }
+    console.log("");
+    if (!opts.mcpOnly) console.log(`  Restored ${skillCount} skill(s).`);
+    if (!opts.skillsOnly) {
+      console.log(`  Restored ${mcpCount} MCP server(s).`);
+      if (mcpCount > 0) console.log(yellow("  ⟳ restart Claude Code to apply MCP changes"));
+    }
+    console.log("");
   });
 
 program
@@ -179,15 +258,40 @@ program
   .description("Show install state and any active staging")
   .action(() => {
     const state = readState();
+    const mcpParked = parkedMcpCount();
     console.log(`\n  /slimcontext command: ${isCommandInstalled() ? "installed" : "not installed"}`);
     console.log(`  advisory hook:        ${isHookInstalled() ? "enabled" : "disabled"}`);
     if (state) {
       console.log(`  staged for task:      "${state.query}"`);
       console.log(`  parked skills:        ${state.parked.length} (since ${state.appliedAt})`);
     } else {
-      console.log("  staging:              none (full skill set active)");
+      console.log("  staged for task:      none (full skill set active)");
     }
+    console.log(
+      mcpParked > 0
+        ? `  parked MCP servers:   ${mcpParked}  ${yellow("⟳ restart Claude Code to apply")}`
+        : "  parked MCP servers:   none (full MCP set active)",
+    );
     console.log("");
+    updateFooter();
+  });
+
+program
+  .command("list-mcp")
+  .description("List discovered MCP servers and their estimated token cost")
+  .action(() => {
+    const servers = discoverMcpServers();
+    if (servers.length === 0) {
+      console.log(`\n  No MCP servers found in ${claudeMcpFile()}.\n`);
+      return;
+    }
+    console.log(`\n  ${servers.length} MCP server(s) discovered:\n`);
+    let total = 0;
+    for (const s of servers.sort((a, b) => b.tokensEstimate - a.tokensEstimate)) {
+      total += s.tokensEstimate;
+      console.log(`  ≈${num(s.tokensEstimate).padStart(7)} tok  ${s.name}`);
+    }
+    console.log(dim(`\n  approx always-on MCP cost: ≈${num(total)} tok per turn\n`));
     updateFooter();
   });
 

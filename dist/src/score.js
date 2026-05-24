@@ -69,12 +69,53 @@ function expandDependencies(scored, activated) {
     }
 }
 /**
+ * Compute, per skill, how many *distinct* expanded-query tokens overlap its
+ * document, and whether any of those matches is a "rare" term. A lonely match
+ * on a corpus-wide common term is a weak signal (e.g. "build" in a spreadsheet
+ * skill when the task says "build a beta"); we dampen those scores so they
+ * don't bump out genuinely-relevant skills.
+ */
+function lonelyMatchPenalty(docs, queryTokens) {
+    const docSets = docs.map((d) => new Set(d.tokens));
+    const querySet = new Set(queryTokens);
+    // corpus document frequency for each query token (in how many docs it appears)
+    const df = new Map();
+    for (const q of querySet) {
+        let c = 0;
+        for (const s of docSets)
+            if (s.has(q))
+                c++;
+        df.set(q, c);
+    }
+    const N = docs.length || 1;
+    // commonness threshold: terms appearing in ≥30% of docs are weak signals
+    // on their own. Single-match on a rare term is fine and stays at 1.0.
+    const COMMON = 0.3;
+    return docSets.map((docTokens) => {
+        let matches = 0;
+        let onlyMatch = "";
+        for (const q of querySet) {
+            if (docTokens.has(q)) {
+                matches++;
+                onlyMatch = q;
+                if (matches >= 2)
+                    return 1; // multiple matches → no dampening
+            }
+        }
+        if (matches === 0)
+            return 1; // zero matches → BM25 already 0
+        // lonely match: dampen if it's a common corpus term
+        const commonness = (df.get(onlyMatch) ?? 0) / N;
+        return commonness >= COMMON ? 0.4 : 1;
+    });
+}
+/**
  * Score every skill against `query` and decide which to activate.
  * Pure and deterministic — no I/O, no network, no paid API calls.
  */
 function scoreSkills(skills, query, options = {}) {
     const topK = options.topK ?? config_1.DEFAULT_TOP_K;
-    const minScore = options.minScore ?? 0;
+    const minScore = options.minScore ?? 0.1;
     const queryLower = query.toLowerCase();
     const queryTokens = (0, bm25_1.expandQuery)((0, bm25_1.tokenize)(query));
     const docs = skills.map((s) => ({
@@ -84,8 +125,9 @@ function scoreSkills(skills, query, options = {}) {
     const bm25 = new bm25_1.Bm25(docs);
     const rawBm25 = skills.map((s) => bm25.score(s.name, queryTokens));
     const maxBm25 = Math.max(0.0001, ...rawBm25);
+    const penalty = lonelyMatchPenalty(docs, queryTokens);
     const scored = skills.map((skill, i) => {
-        const bm = rawBm25[i] / maxBm25;
+        const bm = (rawBm25[i] / maxBm25) * penalty[i];
         const { boost, reasons } = triggerBoost(skill, query, queryLower);
         const alwaysLoad = skill.manifest?.alwaysLoad ?? false;
         let score = Math.min(1, bm * 0.7 + boost);
@@ -94,6 +136,8 @@ function scoreSkills(skills, query, options = {}) {
         const allReasons = [...reasons];
         if (bm > 0.01)
             allReasons.push(`bm25 relevance ${bm.toFixed(2)}`);
+        if (penalty[i] < 1)
+            allReasons.push("lonely common-term match (dampened)");
         if (alwaysLoad)
             allReasons.push("alwaysLoad");
         return {

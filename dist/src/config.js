@@ -42,6 +42,7 @@ exports.stateFile = stateFile;
 exports.userSkillsDir = userSkillsDir;
 exports.projectSkillsDir = projectSkillsDir;
 exports.claudeSettingsFile = claudeSettingsFile;
+exports.claudeMcpFile = claudeMcpFile;
 exports.claudeCommandsDir = claudeCommandsDir;
 exports.updateCacheFile = updateCacheFile;
 const os = __importStar(require("os"));
@@ -76,6 +77,14 @@ function claudeSettingsFile() {
     return (process.env.SLIMCONTEXT_CLAUDE_SETTINGS ||
         path.join(os.homedir(), ".claude", "settings.json"));
 }
+/**
+ * Claude Code user-level MCP server config — `~/.claude/.mcp.json` by default.
+ * Holds the `mcpServers` block slimcontext can park entries out of.
+ */
+function claudeMcpFile() {
+    return (process.env.SLIMCONTEXT_CLAUDE_MCP ||
+        path.join(os.homedir(), ".claude", ".mcp.json"));
+}
 /** Claude Code custom-commands directory (`/slimcontext` lives here). */
 function claudeCommandsDir() {
     return (process.env.SLIMCONTEXT_CLAUDE_COMMANDS ||
@@ -83,7 +92,7 @@ function claudeCommandsDir() {
 }
 exports.DEFAULT_TOP_K = 8;
 /** Current slimcontext version. Bump on release. */
-exports.VERSION = "0.1.7";
+exports.VERSION = "0.1.8";
 /** GitHub repo slimcontext updates from. */
 exports.GITHUB_REPO = "tommisullivan/slimcontext";
 /** Cached result of the daily "is there a newer version?" check. */

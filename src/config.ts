@@ -44,6 +44,17 @@ export function claudeSettingsFile(): string {
   );
 }
 
+/**
+ * Claude Code user-level MCP server config — `~/.claude/.mcp.json` by default.
+ * Holds the `mcpServers` block slimcontext can park entries out of.
+ */
+export function claudeMcpFile(): string {
+  return (
+    process.env.SLIMCONTEXT_CLAUDE_MCP ||
+    path.join(os.homedir(), ".claude", ".mcp.json")
+  );
+}
+
 /** Claude Code custom-commands directory (`/slimcontext` lives here). */
 export function claudeCommandsDir(): string {
   return (
@@ -55,7 +66,7 @@ export function claudeCommandsDir(): string {
 export const DEFAULT_TOP_K = 8;
 
 /** Current slimcontext version. Bump on release. */
-export const VERSION = "0.1.7";
+export const VERSION = "0.1.8";
 
 /** GitHub repo slimcontext updates from. */
 export const GITHUB_REPO = "tommisullivan/slimcontext";

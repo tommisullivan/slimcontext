@@ -13,11 +13,16 @@ export declare function userSkillsDir(): string;
 export declare function projectSkillsDir(cwd: string): string;
 /** Claude Code settings file that `init` writes the hook into. */
 export declare function claudeSettingsFile(): string;
+/**
+ * Claude Code user-level MCP server config — `~/.claude/.mcp.json` by default.
+ * Holds the `mcpServers` block slimcontext can park entries out of.
+ */
+export declare function claudeMcpFile(): string;
 /** Claude Code custom-commands directory (`/slimcontext` lives here). */
 export declare function claudeCommandsDir(): string;
 export declare const DEFAULT_TOP_K = 8;
 /** Current slimcontext version. Bump on release. */
-export declare const VERSION = "0.1.7";
+export declare const VERSION = "0.1.8";
 /** GitHub repo slimcontext updates from. */
 export declare const GITHUB_REPO = "tommisullivan/slimcontext";
 /** Cached result of the daily "is there a newer version?" check. */

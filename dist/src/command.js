@@ -47,20 +47,22 @@ const MENU_FILE = "slimcontext.md";
 const UPDATE_FILE = "update-slimcontext.md";
 /** The `/slimcontext` menu — becomes the prompt when a user types /slimcontext. */
 const MENU_BODY = `---
-description: Open the slimcontext control menu — slim skills, toggle the hook, update, view savings
+description: Open the slimcontext control menu — slim skills + MCP servers, toggle the hook, update, view savings
 ---
 
 The user invoked the slimcontext control menu. slimcontext trims which Claude Code
-skills load, to cut context tokens. Do the following:
+skills AND MCP servers load, to cut context tokens. Do the following:
 
 1. Run \`slimcontext status\` (Bash) to read the current state — whether the advisory
-   hook is enabled and whether skills are currently staged.
+   hook is enabled, whether skills are staged, and how many MCP servers are parked.
 
 2. Use AskUserQuestion to show a menu. header: "slimcontext", question:
    "What would you like to do?". Options:
-   - "Slim skills for a task" — park skills irrelevant to a specific task. This is the
-     real token cut and is fully reversible.
-   - "Restore all skills" — un-park everything; the full skill library comes back.
+   - "Slim for a task" — park skills AND MCP servers irrelevant to a specific task.
+     Reversible. Skills take effect immediately; MCP changes need a Claude Code restart.
+   - "Slim skills only" — same but leave MCP servers untouched.
+   - "Slim MCP servers only" — same but leave skills untouched.
+   - "Restore everything" — un-park all skills and MCP servers.
    - If the hook is currently OFF: "Enable advisory hook" — silently injects routing
      context for the model on every prompt (no chat-visible message). If ON:
      "Disable advisory hook" — turn it off entirely.
@@ -68,10 +70,14 @@ skills load, to cut context tokens. Do the following:
    - "Update slimcontext" — pull the latest version from GitHub.
 
 3. Carry out the chosen action with Bash:
-   - Slim skills: ask the user (plain text) what task they are about to work on, then
-     run \`slimcontext apply "<task>"\`. Show the result and remind them they can undo
-     with /slimcontext → Restore.
-   - Restore all skills: run \`slimcontext restore\`.
+   - Slim for a task: ask the user (plain text) what task they are about to work on,
+     then run \`slimcontext apply "<task>"\`. Show the result and remind them they can
+     undo with /slimcontext → Restore. If any MCP server was parked, tell them to
+     restart Claude Code for MCP changes to take effect.
+   - Slim skills only: \`slimcontext apply --skills-only "<task>"\`.
+   - Slim MCP servers only: \`slimcontext apply --mcp-only "<task>"\` (remind them to
+     restart Claude Code afterwards).
+   - Restore everything: run \`slimcontext restore\`.
    - Enable advisory hook: run \`slimcontext enable\`.
    - Disable advisory hook: run \`slimcontext disable\`.
    - Show savings stats: run \`slimcontext stats\`.
@@ -79,9 +85,10 @@ skills load, to cut context tokens. Do the following:
 
 4. Report the outcome in two or three sentences.
 
-Quality note: "Slim skills" physically parks skill folders — if a parked skill turns out
-to be needed, restore and re-run with a higher --top value. The advisory hook never
-removes skills, so enabling it carries no quality risk.
+Quality note: "Slim" physically moves skills and MCP server configs out of the way —
+if something parked turns out to be needed, restore and re-run with a higher --top
+value. The advisory hook never removes skills, so enabling it carries no quality risk.
+MCP server changes require a Claude Code restart because servers connect at startup.
 
 Want the chat-visible "slimcontext · N skills relevant" diagnostic line back? It's opt-in
 via the environment variable \`SLIMCONTEXT_VERBOSE=1\`. Without it the hook is silent

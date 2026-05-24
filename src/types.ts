@@ -56,7 +56,11 @@ export interface ScoredSkill {
 export interface ScoreOptions {
   /** Maximum skills to activate (excluding dependency expansion). Default 8. */
   topK?: number;
-  /** Skills scoring at or below this are never activated unless alwaysLoad. Default 0. */
+  /**
+   * Skills scoring at or below this are never activated unless alwaysLoad.
+   * Default 0.1 — filters out weak lonely-token matches (e.g. only "build"
+   * overlapping with the task) that otherwise consume the last topK slot.
+   */
   minScore?: number;
 }
 
@@ -102,4 +106,59 @@ export interface SlimState {
   query: string;
   /** Skill directory basenames currently parked. */
   parked: string[];
+  /** MCP server names currently parked (optional for backward compatibility). */
+  parkedMcp?: string[];
+}
+
+/* ── MCP server slimming ─────────────────────────────────────────────── */
+
+/** Raw shape of an entry under `mcpServers` in ~/.claude/.mcp.json. */
+export interface McpServerConfig {
+  command?: string;
+  args?: string[];
+  env?: Record<string, string>;
+  url?: string;
+  type?: string;
+  /** Optional user-supplied description — improves scoring quality. */
+  description?: string;
+  [k: string]: unknown;
+}
+
+export interface McpServer {
+  /** Server name (the key under `mcpServers`). */
+  name: string;
+  config: McpServerConfig;
+  /**
+   * Free-text description scored against the task. Prefers
+   * `config.description`, falls back to a synthesized command/args summary.
+   */
+  description: string;
+  /**
+   * Heuristic estimate of the always-on token cost this server adds when
+   * Claude Code loads its tool schemas. Approximate.
+   */
+  tokensEstimate: number;
+}
+
+export interface ScoredMcpServer {
+  server: McpServer;
+  /** Final normalized score, 0..1. */
+  score: number;
+  bm25: number;
+  rawBm25: number;
+  reasons: string[];
+  activated: boolean;
+}
+
+export interface McpScoreResult {
+  query: string;
+  scored: ScoredMcpServer[];
+  activated: ScoredMcpServer[];
+  suppressed: ScoredMcpServer[];
+  /** Estimated always-on tokens for every discovered server. */
+  tokensFull: number;
+  /** Estimated always-on tokens for activated servers only. */
+  tokensSlim: number;
+  saved: number;
+  savedPct: number;
 }

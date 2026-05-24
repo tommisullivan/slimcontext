@@ -1,7 +1,7 @@
 {
   "name": "slimcontext",
-  "version": "0.1.7",
-  "description": "Trim your AI coding agent's skill context — keep only the skills a task needs. Local, free, with a token-savings dashboard.",
+  "version": "0.1.8",
+  "description": "Trim your AI coding agent's skill + MCP context — keep only what a task needs. Local, free, with a token-savings dashboard.",
   "license": "MIT",
   "bin": {
     "slimcontext": "dist/src/cli.js"

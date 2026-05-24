@@ -112,12 +112,19 @@ hook, or view savings.
 | Command | What it does |
 |---|---|
 | `slimcontext list` | Every skill you have and what it costs in tokens |
+| `slimcontext list-mcp` | Every MCP server in `~/.claude/.mcp.json` and its est. token cost |
 | `slimcontext score "<task>"` | Rank skills against a task — read-only, changes nothing |
-| `slimcontext apply "<task>"` | Park irrelevant skills so your next session starts lean |
-| `slimcontext restore` | Put every parked skill back |
+| `slimcontext apply "<task>"` | Park irrelevant skills **and MCP servers** so your next session starts lean |
+| `slimcontext apply --skills-only "<task>"` | Same, but leave MCP servers alone |
+| `slimcontext apply --mcp-only "<task>"` | Same, but only slim MCP servers |
+| `slimcontext restore` | Put every parked skill and MCP server back |
 | `slimcontext init` | Install the `/slimcontext` menu + advisory hook |
 | `slimcontext enable` / `disable` | Toggle the advisory hook |
 | `slimcontext stats` | The token-savings dashboard |
+
+> **MCP slimming caveat:** MCP server connections are established at Claude Code startup, so
+> parking/restoring them takes effect **on next restart**. Skills are picked up per-prompt
+> and are hot-reloadable.
 
 ## How it works
 
@@ -126,8 +133,11 @@ Tool Search uses — plus optional per-skill trigger rules. Deterministic, runs 
 no GPU, and **nothing ever leaves your machine**.
 
 - `score` — dry run; shows the ranking, changes nothing.
-- `apply` — moves low-scoring **user** skills into `~/.slimcontext/parked/`. Project skills
-  (a repo's `.claude/skills/`) are never touched. Fully reversible with `restore`.
+- `apply` — moves low-scoring **user** skills into `~/.slimcontext/parked/`, and (unless
+  `--skills-only`) moves low-scoring **MCP servers** out of the `mcpServers` block in
+  `~/.claude/.mcp.json` into a sibling `_slimcontext_parked_mcpServers` block in the same
+  file. Project skills (a repo's `.claude/skills/`) are never touched. Fully reversible
+  with `restore`.
 - the hook — silently injects routing context for the model on every prompt and logs
   telemetry to a greppable JSONL ledger. Set `SLIMCONTEXT_VERBOSE=1` to also see a
   per-prompt chat line ("slimcontext · N of M skills relevant"); it's off by default
@@ -167,8 +177,10 @@ off after `apply`, `restore` and re-run with a higher `--top`. Semantic scoring 
 | Token-savings dashboard | ✅ | ❌ | ❌ |
 | Works offline / private | ✅ | ❌ | ✅ |
 
-slimcontext deliberately does **not** touch MCP tool loading — Claude Code shipped native "MCP
-Tool Search" in January 2026. This tool is about your *skills*.
+slimcontext now also parks idle **MCP servers** for a task — complementary to Claude Code's
+native MCP Tool Search (which lazily loads tool *schemas* for a connected server). Slimming a
+server keeps it from connecting at all for sessions where it isn't needed, dropping the
+always-on tool-list cost to zero for that server until you `restore`.
 
 ## Roadmap
 
@@ -179,6 +191,9 @@ Tool Search" in January 2026. This tool is about your *skills*.
 
 _Shipped:_
 
+- [x] **v0.1.8** — **MCP server slimming + sharper scoring.**
+  - **MCP slimming:** `slimcontext apply` now also scores MCP servers from `~/.claude/.mcp.json` against the task and parks the irrelevant ones into a sibling `_slimcontext_parked_mcpServers` block in the same file. `restore` reverses it. New `slimcontext list-mcp` lists every server with its estimated token cost. Use `--skills-only` or `--mcp-only` to opt out of one half. MCP changes require a Claude Code restart to take effect (servers connect at startup).
+  - **Scoring quality:** expanded the synonym table with mobile/launch/QA/game/touch clusters — `mobile↔ios/android/app`, `ship↔launch/release/publish` (asymmetric with `deploy` so mobile shipping doesn't route to Kubernetes), `test↔verify/validate/qa`, `flight↔testflight/beta`, `crash↔crashlytics`, `game↔unity/unreal`, `touch↔input/gesture`. Together with a new lonely-match dampener (a doc matching on only one corpus-common term gets its BM25 score halved) and a `minScore` floor of 0.1, this catches false negatives the prior heuristic missed (an "app store launch" skill now surfaces on a "ship a beta to TestFlight" task) and drops false positives (a "build pivot tables" skill no longer rides "build" into a mobile-game task).
 - [x] **v0.1.7** — the chat-visible hook line is now opt-in (`SLIMCONTEXT_VERBOSE=1`); by default the hook injects routing context for the model silently, so it doesn't print "N of 143 skills relevant" under every chat. Install fixed too — the npm name `slimcontext` is taken by another project, so install from GitHub: `npm install -g github:tommisullivan/slimcontext`.
 - [x] **v0.1.6** — smarter BM25: stemming, compound-word splitting (camelCase / kebab / snake), and a built-in tech-synonym table (auth↔login, k8s↔kubernetes, migration↔migrate…). A real first step toward the embedding backend.
 - [x] **v0.1.5** — follow skill file-references for an honest on-demand body-pool figure.

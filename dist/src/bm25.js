@@ -55,8 +55,14 @@ function tokenize(text) {
 const SYNONYMS = {
     auth: ["login", "authentication", "authorization", "signin"],
     login: ["auth", "signin", "authentication"],
-    test: ["spec", "testing", "tdd"],
+    // testing/QA cluster — bridge "test" to "verify"/"validate" so QA skills
+    // that describe themselves as "verification" surface for testing queries.
+    test: ["spec", "testing", "tdd", "qa", "verify", "validate", "check"],
     spec: ["test", "testing"],
+    verify: ["test", "validate", "check", "qa", "verification"],
+    verification: ["verify", "test", "validate", "qa"],
+    validate: ["verify", "check", "test", "validation"],
+    qa: ["test", "verify", "quality"],
     k8s: ["kubernetes"],
     kubernetes: ["k8s"],
     docker: ["container", "containerization"],
@@ -68,7 +74,16 @@ const SYNONYMS = {
     database: ["db", "sql"],
     sql: ["database", "query", "migration"],
     api: ["endpoint", "rest", "graphql"],
-    deploy: ["ship", "release", "publish"],
+    // ship/launch/release cluster — these all mean the same thing in *product*
+    // work. Note the asymmetry with "deploy": `deploy → ship` (an infra deploy
+    // is a kind of shipping), but NOT `ship → deploy` — shipping a mobile beta
+    // does not mean "kubectl apply", and that link routes mobile tasks into
+    // Kubernetes/Docker territory.
+    deploy: ["ship", "release", "publish", "launch", "rollout"],
+    ship: ["release", "publish", "launch", "rollout"],
+    release: ["ship", "launch", "publish", "rollout"],
+    launch: ["release", "ship", "publish", "rollout"],
+    publish: ["ship", "release", "launch"],
     build: ["compile", "bundle"],
     ui: ["interface", "frontend", "component"],
     frontend: ["ui", "client"],
@@ -84,6 +99,29 @@ const SYNONYMS = {
     documentation: ["doc", "docs"],
     pr: ["pull-request", "review"],
     mcp: ["model-context-protocol", "tool"],
+    // mobile/app-store cluster — "mobile"/"ios"/"android"/"app" should all
+    // reach app-store, TestFlight, Google Play, and mobile-build/test skills.
+    mobile: ["ios", "android", "app", "phone", "tablet", "device"],
+    ios: ["iphone", "ipad", "apple", "mobile", "appstore", "testflight"],
+    android: ["google", "playstore", "mobile", "device"],
+    app: ["mobile", "application", "ios", "android"],
+    appstore: ["app-store", "ios", "apple", "testflight"],
+    // "TestFlight" tokenizes to "test"+"flight"; bridge "flight" too so the
+    // signal isn't lost on a stop at the "test" stem alone.
+    flight: ["testflight", "ios", "beta", "release"],
+    testflight: ["beta", "ios", "appstore", "release"],
+    beta: ["preview", "prerelease", "testflight", "qa"],
+    store: ["appstore", "playstore", "marketplace"],
+    // crash/observability cluster
+    crash: ["crashlytics", "exception", "error", "bug"],
+    crashlytics: ["crash", "firebase", "error", "exception"],
+    // game-dev cluster — "game" reaches Unity/Unreal/gameplay/engine skills.
+    game: ["unity", "unreal", "gameplay", "engine"],
+    unity: ["game", "engine", "gameplay"],
+    // input/gesture cluster — "touch input lag" should reach gesture skills.
+    input: ["touch", "gesture", "tap", "swipe", "control"],
+    touch: ["input", "gesture", "tap", "swipe"],
+    gesture: ["touch", "input", "tap", "swipe"],
 };
 /** Expand a query token list with built-in synonyms. */
 function expandQuery(queryTokens) {

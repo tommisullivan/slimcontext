@@ -70,6 +70,7 @@ export function isolate(skillsDir?: string): {
   skillsDir: string;
   settings: string;
   commands: string;
+  mcp: string;
   cwd: string;
 } {
   const home = tmp("home");
@@ -78,9 +79,20 @@ export function isolate(skillsDir?: string): {
   const claudeDir = tmp("claude");
   const settings = path.join(claudeDir, "settings.json");
   const commands = path.join(claudeDir, "commands");
+  const mcp = path.join(claudeDir, ".mcp.json");
   process.env.SLIMCONTEXT_HOME = home;
   process.env.SLIMCONTEXT_SKILLS_DIR = skills;
   process.env.SLIMCONTEXT_CLAUDE_SETTINGS = settings;
   process.env.SLIMCONTEXT_CLAUDE_COMMANDS = commands;
-  return { home, skillsDir: skills, settings, commands, cwd };
+  process.env.SLIMCONTEXT_CLAUDE_MCP = mcp;
+  return { home, skillsDir: skills, settings, commands, mcp, cwd };
+}
+
+/** Write a fake ~/.claude/.mcp.json fixture. */
+export function writeMcpFixture(
+  mcpFile: string,
+  servers: Record<string, Record<string, unknown>>,
+): void {
+  fs.mkdirSync(path.dirname(mcpFile), { recursive: true });
+  fs.writeFileSync(mcpFile, JSON.stringify({ mcpServers: servers }, null, 2), "utf8");
 }

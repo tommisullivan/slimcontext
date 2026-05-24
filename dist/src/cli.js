@@ -6,6 +6,7 @@ const commander_1 = require("commander");
 const discover_1 = require("./discover");
 const score_1 = require("./score");
 const apply_1 = require("./apply");
+const mcp_1 = require("./mcp");
 const stats_1 = require("./stats");
 const telemetry_1 = require("./telemetry");
 const install_1 = require("./install");
@@ -64,10 +65,37 @@ function printScore(result, showAll = false) {
     console.log(dim(`  on-demand body pool     ≈${num(result.bodyPoolSlim)} / ${num(result.bodyPoolFull)} tok  (loaded only when a skill runs)`));
     console.log("");
 }
+function printMcp(result, parked, fileMissing) {
+    if (fileMissing) {
+        console.log(dim(`  MCP servers:           none configured (${(0, config_1.claudeMcpFile)()} not found)\n`));
+        return;
+    }
+    if (result.scored.length === 0) {
+        console.log(dim("  MCP servers:           none configured — nothing to slim.\n"));
+        return;
+    }
+    console.log(`  ${dim("MCP servers")}`);
+    for (const s of result.activated) {
+        console.log("  " +
+            green(`✓ ON  ${s.score.toFixed(2)}  ${s.server.name}`) +
+            dim(`  (≈${num(s.server.tokensEstimate)} tok est.)`));
+    }
+    for (const s of result.suppressed) {
+        console.log(dim(`    off  ${s.score.toFixed(2)}  ${s.server.name}  (≈${num(s.server.tokensEstimate)} tok est.)`));
+    }
+    console.log("  " +
+        bgreen(`MCP saved ≈${num(result.saved)} tokens/turn (approx)  ·  ${parked.length} server(s) parked`));
+    if (parked.length > 0) {
+        console.log(yellow("  ⟳ restart Claude Code to apply MCP changes\n"));
+    }
+    else {
+        console.log("");
+    }
+}
 const program = new commander_1.Command();
 program
     .name("slimcontext")
-    .description("Trim your AI coding agent's skill context — keep only the skills a task needs.")
+    .description("Trim your AI coding agent's skill + MCP context — keep only what a task needs.")
     .version(config_1.VERSION);
 program
     .command("list")
@@ -98,7 +126,7 @@ program
     .argument("<task...>", "the task you are about to work on")
     .description("Score skills against a task (read-only, no changes)")
     .option("-k, --top <n>", "max skills to activate", String(config_1.DEFAULT_TOP_K))
-    .option("--min <score>", "minimum score to activate (0..1)", "0")
+    .option("--min <score>", "minimum score to activate (0..1)", "0.1")
     .option("-a, --all", "show every skill, not just the top few")
     .option("--json", "output JSON")
     .action((taskParts, opts) => {
@@ -118,32 +146,64 @@ program
 program
     .command("apply")
     .argument("<task...>", "the task you are about to work on")
-    .description("Park irrelevant skills so a session starts lean (reversible)")
+    .description("Park irrelevant skills + MCP servers so a session starts lean (reversible)")
     .option("-k, --top <n>", "max skills to keep active", String(config_1.DEFAULT_TOP_K))
-    .option("--min <score>", "minimum score to keep active (0..1)", "0")
+    .option("--mcp-top <n>", "max MCP servers to keep active", String(config_1.DEFAULT_TOP_K))
+    .option("--min <score>", "minimum score to keep active (0..1)", "0.1")
+    .option("--skills-only", "only slim skills, leave MCP servers alone")
+    .option("--mcp-only", "only slim MCP servers, leave skills alone")
     .action((taskParts, opts) => {
-    const { score, parked } = (0, apply_1.applySkills)(process.cwd(), taskParts.join(" "), {
-        topK: parsePositiveInt(opts.top, config_1.DEFAULT_TOP_K),
-        minScore: Number.parseFloat(opts.min) || 0,
-    });
-    printScore(score);
-    console.log(`  Parked ${parked.length} skill(s) → run 'slimcontext restore' to undo.\n`);
+    const query = taskParts.join(" ");
+    const minScore = Number.parseFloat(opts.min) || 0;
+    if (!opts.mcpOnly) {
+        const { score, parked } = (0, apply_1.applySkills)(process.cwd(), query, {
+            topK: parsePositiveInt(opts.top, config_1.DEFAULT_TOP_K),
+            minScore,
+        });
+        printScore(score);
+        console.log(`  Parked ${parked.length} skill(s) → run 'slimcontext restore' to undo.\n`);
+    }
+    if (!opts.skillsOnly) {
+        const mcp = (0, mcp_1.applyMcp)(query, {
+            topK: parsePositiveInt(opts.mcpTop, config_1.DEFAULT_TOP_K),
+            minScore,
+        });
+        printMcp(mcp.score, mcp.parked, mcp.fileMissing);
+    }
     updateFooter();
 });
 program
     .command("restore")
-    .description("Move every parked skill back into place")
-    .action(() => {
-    const { restored } = (0, apply_1.restoreSkills)();
-    console.log(restored.length > 0
-        ? `\n  Restored ${restored.length} skill(s).\n`
-        : "\n  Nothing parked — nothing to restore.\n");
+    .description("Move every parked skill + MCP server back into place")
+    .option("--skills-only", "only restore skills, leave parked MCP servers alone")
+    .option("--mcp-only", "only restore MCP servers, leave parked skills alone")
+    .action((opts) => {
+    let skillCount = 0;
+    let mcpCount = 0;
+    if (!opts.mcpOnly)
+        skillCount = (0, apply_1.restoreSkills)().restored.length;
+    if (!opts.skillsOnly)
+        mcpCount = (0, mcp_1.restoreMcp)().restored.length;
+    if (skillCount === 0 && mcpCount === 0) {
+        console.log("\n  Nothing parked — nothing to restore.\n");
+        return;
+    }
+    console.log("");
+    if (!opts.mcpOnly)
+        console.log(`  Restored ${skillCount} skill(s).`);
+    if (!opts.skillsOnly) {
+        console.log(`  Restored ${mcpCount} MCP server(s).`);
+        if (mcpCount > 0)
+            console.log(yellow("  ⟳ restart Claude Code to apply MCP changes"));
+    }
+    console.log("");
 });
 program
     .command("status")
     .description("Show install state and any active staging")
     .action(() => {
     const state = (0, apply_1.readState)();
+    const mcpParked = (0, mcp_1.parkedMcpCount)();
     console.log(`\n  /slimcontext command: ${(0, command_1.isCommandInstalled)() ? "installed" : "not installed"}`);
     console.log(`  advisory hook:        ${(0, install_1.isHookInstalled)() ? "enabled" : "disabled"}`);
     if (state) {
@@ -151,9 +211,30 @@ program
         console.log(`  parked skills:        ${state.parked.length} (since ${state.appliedAt})`);
     }
     else {
-        console.log("  staging:              none (full skill set active)");
+        console.log("  staged for task:      none (full skill set active)");
     }
+    console.log(mcpParked > 0
+        ? `  parked MCP servers:   ${mcpParked}  ${yellow("⟳ restart Claude Code to apply")}`
+        : "  parked MCP servers:   none (full MCP set active)");
     console.log("");
+    updateFooter();
+});
+program
+    .command("list-mcp")
+    .description("List discovered MCP servers and their estimated token cost")
+    .action(() => {
+    const servers = (0, mcp_1.discoverMcpServers)();
+    if (servers.length === 0) {
+        console.log(`\n  No MCP servers found in ${(0, config_1.claudeMcpFile)()}.\n`);
+        return;
+    }
+    console.log(`\n  ${servers.length} MCP server(s) discovered:\n`);
+    let total = 0;
+    for (const s of servers.sort((a, b) => b.tokensEstimate - a.tokensEstimate)) {
+        total += s.tokensEstimate;
+        console.log(`  ≈${num(s.tokensEstimate).padStart(7)} tok  ${s.name}`);
+    }
+    console.log(dim(`\n  approx always-on MCP cost: ≈${num(total)} tok per turn\n`));
     updateFooter();
 });
 program
